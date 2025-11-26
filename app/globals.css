@@ -3,101 +3,136 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* <CHANGE> Updated to White & Baby Blue Theme */
 :root {
-  --background: #0a1410;
-  --foreground: oklch(0.97 0 0);
+  /* Main Background: Pure White */
+  --background: #ffffff;
+  /* Main Text: Dark Slate (for readability on white) */
+  --foreground: #0f172a;
 
-  --card: #1c2a25;
-  --card-foreground: oklch(0.97 0 0);
+  /* Cards: White with subtle borders */
+  --card: #ffffff;
+  --card-foreground: #0f172a;
 
-  --popover: #1c2a25;
-  --popover-foreground: oklch(0.97 0 0);
+  /* Popovers: White */
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
 
-  --primary: #1ee6a8;
-  --primary-foreground: #0a1410;
+  /* Primary: Baby Blue (Used for main buttons) */
+  --primary: #7dd3fc; 
+  /* Text inside Primary buttons (Dark for contrast) */
+  --primary-foreground: #0f172a;
 
-  --secondary: #15201c;
-  --secondary-foreground: oklch(0.97 0 0);
-  --muted: #15201c;
-  --muted-foreground: oklch(0.75 0 0);
+  /* Secondary: Very Pale Blue (Used for muted blocks) */
+  --secondary: #f0f9ff;
+  --secondary-foreground: #0f172a;
 
-  --accent: #1ee6a8;
-  --accent-foreground: #0a1410;
+  /* Muted: Light Gray/Blue */
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
 
+  /* Accent: Light Blue (Used for hovers) */
+  --accent: #e0f2fe;
+  --accent-foreground: #0f172a;
+
+  /* Destructive: Soft Red */
   --destructive: #ef4444;
-  --destructive-foreground: #0a1410;
+  --destructive-foreground: #fef2f2;
 
-  --border: #22352e;
-  --input: #22352e;
-  --ring: #1ee6a8;
+  /* Borders: Light Grayish Blue */
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  
+  /* Focus Ring: Baby Blue */
+  --ring: #7dd3fc;
 
-  --chart-1: #1ee6a8;
-  --chart-2: #0ebf8c;
-  --chart-3: #0a8f6b;
-  --chart-4: #65a30d;
-  --chart-5: #16a34a;
+  /* Charts: Adjusted to pastel/blue tones */
+  --chart-1: #38bdf8; /* Sky Blue */
+  --chart-2: #818cf8; /* Indigo */
+  --chart-3: #c084fc; /* Purple */
+  --chart-4: #f472b6; /* Pink */
+  --chart-5: #fb7185; /* Rose */
 
   --radius: 0.625rem;
 
-  --sidebar: oklch(1 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-
-  --positive: #22c55e; /* Yes */
-  --negative: #ef4444; /* No */
-}
-
-.dark {
-  --background: #0a1410; /* deep forest green */
-  --foreground: oklch(0.97 0 0);
-
-  --card: #1c2a25; /* slightly lighter, desaturated dark green */
-  --card-foreground: oklch(0.98 0 0);
-
-  --popover: #1c2a25;
-  --popover-foreground: oklch(0.98 0 0);
-
-  --primary: #1ee6a8; /* vibrant lime/teal accent */
-  --primary-foreground: #0a1410;
-
-  --secondary: #15201c; /* another surface layer */
-  --secondary-foreground: oklch(0.98 0 0);
-
-  --muted: #15201c;
-  --muted-foreground: oklch(0.75 0 0);
-
-  --accent: #1ee6a8;
-  --accent-foreground: #0a1410;
-
-  --destructive: #ef4444;
-  --destructive-foreground: #0a1410;
-
-  --border: #22352e; /* subtle, cool green border */
-  --input: #22352e;
-  --ring: #1ee6a8;
-
-  --chart-1: #1ee6a8;
-  --chart-2: #0ebf8c;
-  --chart-3: #0a8f6b;
-  --chart-4: #65a30d;
-  --chart-5: #16a34a;
-
-  --sidebar: #15201c;
-  --sidebar-foreground: oklch(0.98 0 0);
-  --sidebar-primary: #1ee6a8;
-  --sidebar-primary-foreground: #0a1410;
-  --sidebar-accent: #22352e;
-  --sidebar-accent-foreground: oklch(0.98 0 0);
-  --sidebar-border: #22352e;
-  --sidebar-ring: #1ee6a8;
+  /* Sidebar variables */
+  --sidebar: #f8fafc;
+  --sidebar-foreground: #0f172a;
+  --sidebar-primary: #0f172a;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f1f5f9;
+  --sidebar-accent-foreground: #0f172a;
+  --sidebar-border: #e2e8f0;
+  --sidebar-ring: #7dd3fc;
 
   --positive: #22c55e;
   --negative: #ef4444;
+}
+
+/* Dark Mode: Deep Navy with Baby Blue Accents */
+.dark {
+ /* Main Background: Pure White */
+  --background: #ffffff;
+  /* Main Text: Deepest Slate (High contrast against white) */
+  --foreground: #020617;
+
+  /* Cards: White */
+  --card: #ffffff;
+  --card-foreground: #020617;
+
+  /* Popovers: White */
+  --popover: #ffffff;
+  --popover-foreground: #020617;
+
+  /* Primary: Vivid Sky Blue (Darkened from Baby Blue for contrast) */
+  --primary: #0284c7; 
+  /* Text inside Primary buttons: White (Better readability) */
+  --primary-foreground: #ffffff;
+
+  /* Secondary: Pale Blue (Kept light for background blocks) */
+  --secondary: #f0f9ff;
+  /* Secondary Text: Darker for readability */
+  --secondary-foreground: #0c4a6e;
+
+  /* Muted: Slate Blue */
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+
+  /* Accent: Hover states */
+  --accent: #e0f2fe;
+  --accent-foreground: #0284c7;
+
+  /* Destructive: Red */
+  --destructive: #ef4444;
+  --destructive-foreground: #fef2f2;
+
+  /* Borders: Darker Gray-Blue so inputs define clearly */
+  --border: #cbd5e1;
+  --input: #cbd5e1;
+  
+  /* Focus Ring: Vivid Blue */
+  --ring: #0284c7;
+
+  /* Charts: High Saturation Colors */
+  --chart-1: #0284c7; /* Vivid Blue */
+  --chart-2: #6366f1; /* Indigo */
+  --chart-3: #a855f7; /* Purple */
+  --chart-4: #ec4899; /* Pink */
+  --chart-5: #f43f5e; /* Red */
+
+  --radius: 0.625rem;
+
+  --sidebar: #f8fafc;
+  --sidebar-foreground: #0f172a;
+  --sidebar-primary: #0284c7;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f1f5f9;
+  --sidebar-accent-foreground: #0f172a;
+  --sidebar-border: #cbd5e1;
+  --sidebar-ring: #0284c7;
+
+  --positive: #16a34a;
+  --negative: #dc2626;
 }
 
 @theme inline {
@@ -149,16 +184,17 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* <CHANGE> Soft Blue Gradient for White Background */
     background-image: radial-gradient(
-        1200px 600px at 10% -10%,
-        color-mix(in oklch, var(--color-primary) 8%, transparent) 0%,
-        transparent 60%
+        1000px 800px at 80% 0%,
+        color-mix(in oklch, var(--color-primary) 10%, transparent) 0%,
+        transparent 70%
       ),
       radial-gradient(
-        1000px 500px at 110% 0%,
-        color-mix(in oklch, var(--color-primary) 6%, transparent) 0%,
+        800px 800px at 0% 10%,
+        color-mix(in oklch, var(--color-secondary) 40%, transparent) 0%,
         transparent 60%
       );
-    background-blend-mode: overlay;
+    background-blend-mode: multiply;
   }
 }
