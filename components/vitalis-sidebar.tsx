@@ -4,31 +4,37 @@ import { Home, FileText, Wallet, ShieldCheck, UserPlus, BookOpen, Settings, Acti
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
+import Image from "next/image"
+import Link from "next/link" // <--- Important Import
 
+// <CHANGE> Added URLs to the navigation items
 const navItems = [
-  { icon: Home, label: "Home", active: true },
-  { icon: FileText, label: "Medical Record" },
-  { icon: Wallet, label: "DID Wallet" },
-  { icon: ShieldCheck, label: "Data Consent" },
-  { icon: UserPlus, label: "Grant Access" },
-  { icon: BookOpen, label: "Docs" },
-  { icon: Settings, label: "Settings" },
+  { icon: Home, label: "Home", url: "/" },
+  { icon: FileText, label: "Medical Record", url: "/medical-record" }, // Links to your new page
+  { icon: Wallet, label: "DID Wallet", url: "/did-wallet" },
+  { icon: ShieldCheck, label: "Data Consent", url: "/data-consent" },
+  { icon: UserPlus, label: "Grant Access", url: "/grant-access" },
+  { icon: BookOpen, label: "Docs", url: "/docs" },
+  { icon: Settings, label: "Settings", url: "/setting" },
 ]
 
 interface VitalisSidebarProps {
   activeItem?: string
-  onNavigate?: (item: string) => void
 }
 
-export function VitalisSidebar({ activeItem = "Home", onNavigate }: VitalisSidebarProps) {
+export function VitalisSidebar({ activeItem = "Home" }: VitalisSidebarProps) {
   return (
     <aside className="fixed left-0 top-0 z-40 h-screen w-64 border-r border-border bg-sidebar flex flex-col">
       {/* Logo */}
       <div className="flex items-center gap-2 px-6 py-5">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-          <Activity className="h-5 w-5 text-primary-foreground" />
-        </div>
-        <span className="text-xl font-semibold tracking-tight text-sidebar-foreground">Vitalis</span>
+         <Image 
+          src="/vitalis logo.png"   
+          alt="Vitalis Logo" 
+          width={70}                
+          height={70} 
+          className="rounded-lg"    
+         />
+         <span className="text-xl font-semibold tracking-tight text-sidebar-foreground">Vitalis</span>
       </div>
 
       <Separator className="bg-sidebar-border" />
@@ -66,8 +72,9 @@ export function VitalisSidebar({ activeItem = "Home", onNavigate }: VitalisSideb
             const isActive = activeItem === item.label
             return (
               <li key={item.label}>
-                <button
-                  onClick={() => onNavigate?.(item.label)}
+                {/* <CHANGE> Switched from button to Link */}
+                <Link
+                  href={item.url}
                   className={cn(
                     "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                     isActive
@@ -77,7 +84,7 @@ export function VitalisSidebar({ activeItem = "Home", onNavigate }: VitalisSideb
                 >
                   <item.icon className="h-5 w-5" />
                   {item.label}
-                </button>
+                </Link>
               </li>
             )
           })}
