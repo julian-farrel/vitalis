@@ -9,6 +9,9 @@ export const metadata: Metadata = {
   title: "Vitalis",
   description: "Blockchain-Based Medical Record Dashboard",
   generator: "v0.app",
+  icons: {
+    icon: "/vitalis logo.png",
+  },
 }
 
 export default function RootLayout({

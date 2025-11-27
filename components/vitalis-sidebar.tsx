@@ -41,27 +41,39 @@ export function VitalisSidebar({ activeItem = "Home" }: VitalisSidebarProps) {
 
       {/* Patient Overview */}
       <div className="px-4 py-5">
-        <div className="rounded-xl bg-sidebar-accent p-4">
-          <div className="flex items-center gap-3">
-            <Avatar className="h-12 w-12 border-2 border-primary/20">
-              <AvatarImage src="/placeholder-user.jpg" alt="Patient" />
-              <AvatarFallback className="bg-primary/10 text-primary font-medium">JD</AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <p className="font-medium text-sm text-sidebar-foreground truncate">John Doe</p>
-              <p className="text-xs text-muted-foreground truncate">DID: did:ethr:0x1a2b...3c4d</p>
+        {/* Updated Card Container with light blue style */}
+        <div className="rounded-xl bg-blue-50 border border-blue-100 p-4">
+          
+          {/* Header: Name, Email, and Shield Icon */}
+          <div className="flex items-start justify-between">
+            <div>
+              <h3 className="font-semibold text-lg text-foreground">Wesley Taruna</h3>
+              <p className="text-sm text-muted-foreground">wesleytaruna@gmail.com</p>
+            </div>
+            {/* <Shield className="h-5 w-5 text-blue-600 mt-1" /> */}
+          </div>
+
+          {/* Body: Blood Type and DOB */}
+          <div className="mt-6 space-y-3">
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-muted-foreground">Blood Type:</span>
+              <span className="font-medium text-foreground">O+</span>
+            </div>
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-muted-foreground">DOB:</span>
+              <span className="font-medium text-foreground">2005-10-13</span>
             </div>
           </div>
-          <div className="mt-4 grid grid-cols-2 gap-3">
-            <div className="rounded-lg bg-background p-2.5">
-              <p className="text-xs text-muted-foreground">Blood Type</p>
-              <p className="text-sm font-semibold text-primary">A+</p>
-            </div>
-            <div className="rounded-lg bg-background p-2.5">
-              <p className="text-xs text-muted-foreground">Age</p>
-              <p className="text-sm font-semibold text-sidebar-foreground">32 yrs</p>
-            </div>
+
+          {/* Footer: Separator and ID */}
+          <Separator className="my-4 bg-blue-200" />
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-muted-foreground font-medium">ID:</span>
+            <span className="text-blue-600 font-mono truncate" title="0x1a2b3c4d5e...">
+              0x1a2b3c4d5e ...
+            </span>
           </div>
+
         </div>
       </div>
 
@@ -72,14 +84,23 @@ export function VitalisSidebar({ activeItem = "Home" }: VitalisSidebarProps) {
             const isActive = activeItem === item.label
             return (
               <li key={item.label}>
-                {/* <CHANGE> Switched from button to Link */}
                 <Link
                   href={item.url}
                   className={cn(
-                    "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                    // Base classes
+                    "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium",
+                    // <CHANGE> Made transition slightly longer and smoother (300ms ease-out)
+                    "transition-all duration-300 ease-out",
+                    // The slide effect
+                    "hover:translate-x-1",
                     isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground",
+                      // Active State: Solid primary background with a subtle shadow boost
+                      ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+                      // <CHANGE> Inactive Hover State: The "Glow" Effect
+                      // 1. hover:text-primary -> lights up the text color
+                      // 2. hover:bg-primary/10 -> adds a very faint primary colored background light
+                      // 3. hover:ring-2 hover:ring-primary/20 -> adds a soft, transparent glowing border ring
+                      : "text-muted-foreground hover:text-primary hover:bg-primary/10 hover:ring-1 hover:ring-primary/30"
                   )}
                 >
                   <item.icon className="h-5 w-5" />
