@@ -1,5 +1,21 @@
-import { BookOpen, FileText, Download, Code, Shield, ChevronRight, GraduationCap } from "lucide-react"
+import { 
+  BookOpen, 
+  FileText, 
+  Download, 
+  Code, 
+  Shield, 
+  ChevronRight, 
+  GraduationCap, 
+  Search, 
+  Youtube, 
+  Terminal, 
+  Activity, 
+  Server, 
+  Database 
+} from "lucide-react"
 import { VitalisSidebar } from "@/components/vitalis-sidebar"
+import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 
 export const metadata = {
@@ -16,15 +32,51 @@ export default function DocsPage() {
       <main className="pl-64 w-full">
         <div className="flex flex-col gap-8 p-8 max-w-6xl mx-auto">
           
-          {/* Header */}
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-              <BookOpen className="h-6 w-6 text-primary" />
+          {/* Header & Search */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+                <BookOpen className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold tracking-tight">Documentation</h1>
+                <p className="text-muted-foreground">Technical guides, smart contract references, and resources.</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Documentation</h1>
-              <p className="text-muted-foreground">Technical guides, smart contract references, and the Vitalis Whitepaper.</p>
+            
+            {/* Search Bar Feature */}
+            <div className="relative w-full md:w-96">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input 
+                placeholder="Search guides, error codes, or APIs..." 
+                className="pl-10 bg-background border-border shadow-sm"
+              />
             </div>
+          </div>
+
+          {/* System Status Indicators Feature */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+             <div className="flex items-center justify-between p-4 rounded-lg border bg-card/50">
+                <div className="flex items-center gap-3">
+                   <Activity className="h-5 w-5 text-emerald-500" />
+                   <span className="font-medium text-sm">Ethereum Mainnet</span>
+                </div>
+                <Badge variant="outline" className="text-emerald-600 bg-emerald-500/10 border-emerald-200">Operational</Badge>
+             </div>
+             <div className="flex items-center justify-between p-4 rounded-lg border bg-card/50">
+                <div className="flex items-center gap-3">
+                   <Database className="h-5 w-5 text-blue-500" />
+                   <span className="font-medium text-sm">IPFS Storage</span>
+                </div>
+                <Badge variant="outline" className="text-blue-600 bg-blue-500/10 border-blue-200">Operational</Badge>
+             </div>
+             <div className="flex items-center justify-between p-4 rounded-lg border bg-card/50">
+                <div className="flex items-center gap-3">
+                   <Server className="h-5 w-5 text-orange-500" />
+                   <span className="font-medium text-sm">Vitalis API</span>
+                </div>
+                <Badge variant="outline" className="text-orange-600 bg-orange-500/10 border-orange-200">v2.1 Stable</Badge>
+             </div>
           </div>
 
           {/* Featured: Whitepaper Download */}
@@ -41,24 +93,21 @@ export default function DocsPage() {
                   </p>
                </div>
                
-               {/* <CHANGE> The Hyperlinked Whitepaper Button */}
                <Link 
-                 href="/vitalis-whitepaper.pdf" // Ensure you put a PDF with this name in your public folder
-                 target="_blank" // Opens in new tab
+                 href="/vitalis-whitepaper.pdf" 
+                 target="_blank" 
                  className="flex items-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 hover:bg-primary/90 transition-transform hover:scale-105"
                >
                  <Download className="h-5 w-5" />
-                 Download Whitepaper
+                 View Whitepaper
                </Link>
             </div>
-            
-            {/* Decorative Background Element */}
             <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
           </div>
 
-          {/* Documentation Grid */}
+          {/* Resource Hub Grid */}
           <div>
-            <h3 className="mb-4 text-lg font-semibold">Browse Topics</h3>
+            <h3 className="mb-4 text-lg font-semibold">Resource Hub</h3>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                
                {/* Card 1: Getting Started */}
@@ -66,12 +115,12 @@ export default function DocsPage() {
                   <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600 group-hover:bg-blue-500 group-hover:text-white transition-colors">
                      <GraduationCap className="h-5 w-5" />
                   </div>
-                  <h4 className="font-semibold group-hover:text-primary transition-colors">Getting Started</h4>
+                  <h4 className="font-semibold group-hover:text-primary transition-colors">User Guides</h4>
                   <p className="mt-2 text-sm text-muted-foreground">
-                     Learn how to set up your DID wallet and verify your first medical record.
+                     Step-by-step tutorials for wallet setup, record uploading, and granting permissions.
                   </p>
                   <div className="mt-auto pt-4 flex items-center text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                     Read Guide <ChevronRight className="ml-1 h-3 w-3" />
+                     Start Learning <ChevronRight className="ml-1 h-3 w-3" />
                   </div>
                </Link>
 
@@ -80,47 +129,101 @@ export default function DocsPage() {
                   <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-purple-500/10 text-purple-600 group-hover:bg-purple-500 group-hover:text-white transition-colors">
                      <Code className="h-5 w-5" />
                   </div>
-                  <h4 className="font-semibold group-hover:text-primary transition-colors">Developer API</h4>
+                  <h4 className="font-semibold group-hover:text-primary transition-colors">Developer SDK</h4>
                   <p className="mt-2 text-sm text-muted-foreground">
-                     Integrate Vitalis into your hospital management system (HMS).
+                     API references and SDKs for integrating Vitalis into Hospital Management Systems (HMS).
                   </p>
                   <div className="mt-auto pt-4 flex items-center text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                     View Docs <ChevronRight className="ml-1 h-3 w-3" />
+                     View Documentation <ChevronRight className="ml-1 h-3 w-3" />
                   </div>
                </Link>
 
-               {/* Card 3: Security & Privacy */}
+               {/* Card 3: Privacy Architecture */}
                <Link href="#" className="group flex flex-col rounded-xl border bg-card p-6 shadow-sm transition-all hover:border-primary/50 hover:shadow-md">
                   <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-green-500/10 text-green-600 group-hover:bg-green-500 group-hover:text-white transition-colors">
                      <Shield className="h-5 w-5" />
                   </div>
-                  <h4 className="font-semibold group-hover:text-primary transition-colors">Privacy Architecture</h4>
+                  <h4 className="font-semibold group-hover:text-primary transition-colors">Security Architecture</h4>
                   <p className="mt-2 text-sm text-muted-foreground">
-                     Understanding ZK-SNARKs and how we ensure HIPAA compliance on-chain.
+                     
+
+[Image of blockchain medical record data flow architecture]
+
+                     Deep dive into Zero-Knowledge Proofs (ZKPs) and HIPAA compliance layers.
                   </p>
                   <div className="mt-auto pt-4 flex items-center text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                     Learn More <ChevronRight className="ml-1 h-3 w-3" />
+                     Read Architecture <ChevronRight className="ml-1 h-3 w-3" />
+                  </div>
+               </Link>
+
+               {/* Card 4: Video Tutorials (New) */}
+               <Link href="#" className="group flex flex-col rounded-xl border bg-card p-6 shadow-sm transition-all hover:border-primary/50 hover:shadow-md">
+                  <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-red-500/10 text-red-600 group-hover:bg-red-500 group-hover:text-white transition-colors">
+                     <Youtube className="h-5 w-5" />
+                  </div>
+                  <h4 className="font-semibold group-hover:text-primary transition-colors">Video Tutorials</h4>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                     Visual walkthroughs for doctors and patients on managing digital consents.
+                  </p>
+                  <div className="mt-auto pt-4 flex items-center text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                     Watch Videos <ChevronRight className="ml-1 h-3 w-3" />
+                  </div>
+               </Link>
+
+               {/* Card 5: Smart Contracts (New) */}
+               <Link href="#" className="group flex flex-col rounded-xl border bg-card p-6 shadow-sm transition-all hover:border-primary/50 hover:shadow-md">
+                  <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-slate-500/10 text-slate-600 group-hover:bg-slate-500 group-hover:text-white transition-colors">
+                     <Terminal className="h-5 w-5" />
+                  </div>
+                  <h4 className="font-semibold group-hover:text-primary transition-colors">Smart Contracts</h4>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                     Audited Solidity contracts for PermissionRegistry and RecordStorage.
+                  </p>
+                  <div className="mt-auto pt-4 flex items-center text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                     View on GitHub <ChevronRight className="ml-1 h-3 w-3" />
                   </div>
                </Link>
 
             </div>
           </div>
 
-          {/* FAQ Section */}
+          {/* Expanded FAQ Section */}
           <div className="rounded-xl border bg-card p-8 shadow-sm">
              <h3 className="mb-6 font-semibold text-lg">Frequently Asked Questions</h3>
              <div className="space-y-6">
+                
+                {/* Data Privacy */}
                 <div>
-                   <h5 className="font-medium text-sm">Is my data stored on the blockchain?</h5>
+                   <h5 className="font-medium text-sm">Is my actual medical data stored on the blockchain?</h5>
                    <p className="mt-1 text-sm text-muted-foreground">
-                      No. Only the cryptographic proof (hash) of your data is stored on-chain. The actual medical files are stored in decentralized encrypted storage (IPFS/Filecoin) that only you control.
+                      No. Only the <strong>cryptographic hash</strong> (a unique digital fingerprint) of your data is stored on-chain for verification. The actual files are stored in decentralized encrypted storage (IPFS/Filecoin) that only you hold the keys to access.
                    </p>
                 </div>
                 <div className="h-px bg-border" />
+                
+                {/* Emergency Access (New) */}
+                <div>
+                   <h5 className="font-medium text-sm">What happens in an emergency if I am unconscious?</h5>
+                   <p className="mt-1 text-sm text-muted-foreground">
+                      Vitalis includes a "Break-Glass" protocol. Verified Emergency Responders can request temporary access. This triggers a smart contract event that logs their identity and the time of access immutably, ensuring full accountability for the intrusion.
+                   </p>
+                </div>
+                <div className="h-px bg-border" />
+
+                {/* Costs (New) */}
+                <div>
+                   <h5 className="font-medium text-sm">Do I have to pay gas fees to view my own records?</h5>
+                   <p className="mt-1 text-sm text-muted-foreground">
+                      No. Viewing records is a "read-only" operation and is free. However, granting access to a new doctor or uploading a new record requires a small gas fee to write the transaction to the Ethereum network.
+                   </p>
+                </div>
+                <div className="h-px bg-border" />
+
+                {/* Recovery */}
                 <div>
                    <h5 className="font-medium text-sm">What happens if I lose my wallet key?</h5>
                    <p className="mt-1 text-sm text-muted-foreground">
-                      Vitalis supports Social Recovery. You can designate trusted guardians (family or lawyer) to help recover your identity if you lose access.
+                      Vitalis supports <strong>Social Recovery</strong>. During setup, you can designate trusted guardians (family, lawyer, or a hardware device). If you lose access, a majority of these guardians can sign a transaction to restore your identity to a new wallet.
                    </p>
                 </div>
              </div>

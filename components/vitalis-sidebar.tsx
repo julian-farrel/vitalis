@@ -13,7 +13,6 @@ const navItems = [
   { icon: FileText, label: "Medical Record", url: "/medical-record" }, // Links to your new page
   { icon: Wallet, label: "DID Wallet", url: "/did-wallet" },
   { icon: ShieldCheck, label: "Data Consent", url: "/data-consent" },
-  { icon: UserPlus, label: "Grant Access", url: "/grant-access" },
   { icon: BookOpen, label: "Docs", url: "/docs" },
   { icon: Settings, label: "Settings", url: "/setting" },
 ]
@@ -70,7 +69,7 @@ export function VitalisSidebar({ activeItem = "Home" }: VitalisSidebarProps) {
           <div className="flex items-center gap-2 text-sm">
             <span className="text-muted-foreground font-medium">ID:</span>
             <span className="text-blue-600 font-mono truncate" title="0x1a2b3c4d5e...">
-              0x1a2b3c4d5e ...
+              0xda61...626da
             </span>
           </div>
 

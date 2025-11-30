@@ -2,47 +2,24 @@
 
 import { useState } from "react"
 import { VitalisSidebar } from "@/components/vitalis-sidebar"
-import { Activity, Heart, Thermometer, Droplets, Calendar, Clock, FileText, Shield, ChevronRight } from "lucide-react"
+import { 
+  Calendar, 
+  Clock, 
+  FileText, 
+  Shield, 
+  ChevronRight, 
+  Users, 
+  Bell, 
+  ShieldCheck, 
+  Database 
+} from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 
-const healthMetrics = [
-  {
-    label: "Heart Rate",
-    value: "72",
-    unit: "bpm",
-    icon: Heart,
-    color: "text-rose-400",
-    bgColor: "bg-rose-500/10",
-  },
-  {
-    label: "Blood Pressure",
-    value: "120/80",
-    unit: "mmHg",
-    icon: Activity,
-    color: "text-primary",
-    bgColor: "bg-primary/10",
-  },
-  {
-    label: "Temperature",
-    value: "98.6",
-    unit: "°F",
-    icon: Thermometer,
-    color: "text-amber-400",
-    bgColor: "bg-amber-500/10",
-  },
-  {
-    label: "Blood Glucose",
-    value: "95",
-    unit: "mg/dL",
-    icon: Droplets,
-    color: "text-sky-400",
-    bgColor: "bg-sky-500/10",
-  },
-]
+// Note: healthMetrics array removed as it is replaced by static administrative cards
 
 const recentRecords = [
   {
@@ -94,32 +71,96 @@ export default function HomePage() {
         <div className="p-8">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Welcome back, John</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Welcome back, Wesley</h1>
             <p className="text-muted-foreground mt-1">Your health data is secure and owned by you on the blockchain.</p>
           </div>
 
-          {/* Health Metrics Grid */}
+          {/* New Dashboard Metrics Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            {healthMetrics.map((metric) => (
-              <Card key={metric.label} className="border-border bg-card">
-                <CardContent className="p-5">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className={`p-2 rounded-lg ${metric.bgColor}`}>
-                      <metric.icon className={`h-5 w-5 ${metric.color}`} />
+            
+            {/* Card 1: Active Permissions */}
+            <Card className="border-border bg-card">
+              <CardContent className="p-5 flex flex-col h-full justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="p-2 rounded-lg bg-blue-500/10">
+                      <Users className="h-5 w-5 text-blue-600" />
                     </div>
-                    <Badge variant="secondary" className="text-xs bg-emerald-500/10 text-emerald-400 border-0">
-                      Normal
+                    <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50">
+                      Active
                     </Badge>
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold text-foreground">{metric.value}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {metric.label} <span className="text-xs">({metric.unit})</span>
-                    </p>
+                  <p className="text-2xl font-bold text-foreground">3 Providers</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Currently accessing your data
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Card 2: Pending Access Requests */}
+            <Card className="border-border bg-card">
+              <CardContent className="p-5 flex flex-col h-full justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="p-2 rounded-lg bg-orange-500/10">
+                      <Bell className="h-5 w-5 text-orange-600" />
+                    </div>
+                    <Badge variant="destructive" className="animate-pulse">
+                      1 New
+                    </Badge>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
+                  <p className="font-semibold text-foreground truncate">Metro Health Clinic</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Requested read access
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 gap-2 mt-4">
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Card 3: Data Ownership Score */}
+            <Card className="border-border bg-card">
+              <CardContent className="p-5 flex flex-col h-full justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="p-2 rounded-lg bg-emerald-500/10">
+                      <ShieldCheck className="h-5 w-5 text-emerald-600" />
+                    </div>
+                    <span className="text-xl font-bold text-emerald-600">100%</span>
+                  </div>
+                  <p className="font-semibold text-foreground">Data Control</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Patient-owned status
+                  </p>
+                </div>
+                <div className="mt-4">
+                  <Progress value={100} className="h-2 bg-emerald-100 [&>div]:bg-emerald-500" />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Card 4: Total Record Blocks */}
+            <Card className="border-border bg-card">
+              <CardContent className="p-5 flex flex-col h-full justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="p-2 rounded-lg bg-purple-500/10">
+                      <Database className="h-5 w-5 text-purple-600" />
+                    </div>
+                    <div className="flex items-center text-xs text-muted-foreground">
+                      <div className="h-2 w-2 rounded-full bg-green-500 mr-2 animate-pulse" />
+                      Synced
+                    </div>
+                  </div>
+                  <p className="text-2xl font-bold text-foreground">124 Blocks</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Secured medical history
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -130,10 +171,6 @@ export default function HomePage() {
                   <CardTitle className="text-lg text-foreground">Recent Medical Records</CardTitle>
                   <CardDescription>Your latest verified health documents</CardDescription>
                 </div>
-                <Button variant="ghost" size="sm" className="text-primary hover:text-primary hover:bg-primary/10">
-                  View All
-                  <ChevronRight className="h-4 w-4 ml-1" />
-                </Button>
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="space-y-3">

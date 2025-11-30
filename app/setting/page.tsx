@@ -1,163 +1,212 @@
 "use client"
 
-import { Settings, User, Bell, Shield, Moon, Sun, LogOut, Smartphone, Mail, ChevronRight } from "lucide-react"
+import { 
+  User, 
+  Shield, 
+  LogOut, 
+  Smartphone, 
+  Laptop,
+  AlertTriangle,
+  Download,
+  Users,
+  CheckCircle2,
+  Copy
+} from "lucide-react"
 import { VitalisSidebar } from "@/components/vitalis-sidebar"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { Separator } from "@/components/ui/separator"
 
 export default function SettingsPage() {
   return (
-    <div className="flex min-h-screen w-full bg-muted/40">
+    <div className="flex min-h-screen w-full bg-background">
       
-      {/* Sidebar with activeItem set to "Settings" */}
       <VitalisSidebar activeItem="Settings" />
       
       <main className="pl-64 w-full">
-        <div className="flex flex-col gap-8 p-8 max-w-5xl mx-auto">
+        <div className="flex flex-col gap-8 p-8 max-w-4xl mx-auto">
           
           {/* Header */}
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-              <Settings className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-              <p className="text-muted-foreground">Manage your account preferences and security.</p>
-            </div>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Account Settings</h1>
+            <p className="text-muted-foreground">Manage your identity, security, and data preferences.</p>
           </div>
 
-          {/* Section 1: Profile Card */}
-          <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
-            <div className="border-b px-6 py-4">
-              <h2 className="font-semibold flex items-center gap-2">
-                <User className="h-4 w-4 text-primary" /> Profile Information
-              </h2>
-            </div>
-            <div className="p-6">
-              <div className="flex items-start gap-8">
-                {/* Avatar Section */}
+          {/* 1. Profile & Identity Card */}
+          <Card>
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5 text-primary" /> Identity Profile
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              
+              <div className="flex flex-col md:flex-row gap-6">
+                {/* Avatar */}
                 <div className="flex flex-col items-center gap-3">
-                   <Avatar className="h-24 w-24 border-4 border-muted">
+                   <Avatar className="h-24 w-24 border-2 border-border">
                       <AvatarImage src="/placeholder-user.jpg" />
-                      <AvatarFallback className="text-2xl bg-primary/10 text-primary">JD</AvatarFallback>
+                      <AvatarFallback className="bg-primary/10 text-2xl font-bold text-primary">JD</AvatarFallback>
                    </Avatar>
-                   <button className="text-xs font-medium text-primary hover:underline">Change Photo</button>
+                   <Button variant="outline" size="sm" className="w-full text-xs">Change</Button>
                 </div>
-                
-                {/* Form Inputs */}
-                <div className="flex-1 grid gap-5">
-                   <div className="grid grid-cols-2 gap-5">
-                      <div className="space-y-2">
-                         <label className="text-sm font-medium">First Name</label>
-                         <input type="text" defaultValue="John" className="w-full rounded-lg border bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/50 transition-all" />
-                      </div>
-                      <div className="space-y-2">
-                         <label className="text-sm font-medium">Last Name</label>
-                         <input type="text" defaultValue="Doe" className="w-full rounded-lg border bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/50 transition-all" />
-                      </div>
-                   </div>
-                   <div className="space-y-2">
-                      <label className="text-sm font-medium">Email Address</label>
-                      <input type="email" defaultValue="john.doe@example.com" className="w-full rounded-lg border bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/50 transition-all" />
-                   </div>
-                   <div className="space-y-2">
-                      <label className="text-sm font-medium">Connected DID (Read Only)</label>
-                      <div className="w-full rounded-lg border bg-muted/50 px-3 py-2.5 text-sm text-muted-foreground font-mono">
-                        did:ethr:0x1a2b3c4d5e6f7g8h9i0j
-                      </div>
-                   </div>
+
+                {/* Inputs */}
+                <div className="flex-1 grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>First Name</Label>
+                    <Input defaultValue="John" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Last Name</Label>
+                    <Input defaultValue="Doe" />
+                  </div>
+                  <div className="col-span-2 space-y-2">
+                    <Label>Email Address</Label>
+                    <Input defaultValue="john.doe@example.com" />
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="bg-muted/30 px-6 py-3 flex justify-end border-t">
-               <button className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 shadow-sm">
-                  Save Changes
-               </button>
-            </div>
-          </div>
 
-          <div className="grid gap-6 md:grid-cols-2">
-             
-             {/* Section 2: Preferences */}
-             <div className="rounded-xl border bg-card shadow-sm">
-                <div className="border-b px-6 py-4">
-                  <h2 className="font-semibold flex items-center gap-2">
-                    <Bell className="h-4 w-4 text-primary" /> Preferences
-                  </h2>
-                </div>
-                <div className="p-6 space-y-6">
-                   
-                   <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                         <label className="text-sm font-medium">Email Alerts</label>
-                         <p className="text-xs text-muted-foreground">Get notified when records are updated.</p>
-                      </div>
-                      <input type="checkbox" className="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary" defaultChecked />
+              {/* Linked DID Block */}
+              <div className="rounded-lg border bg-muted/30 p-4">
+                 <div className="flex items-center justify-between mb-2">
+                    <Label className="text-xs uppercase text-muted-foreground font-semibold">Your Decentralized ID (DID)</Label>
+                    <Badge variant="outline" className="text-emerald-600 border-emerald-200 bg-emerald-50">
+                      <CheckCircle2 className="h-3 w-3 mr-1" /> Verified On-Chain
+                    </Badge>
+                 </div>
+                 <div className="flex items-center gap-2">
+                   <code className="flex-1 text-sm font-mono bg-background p-2.5 rounded border text-foreground">
+                     did:ethr:0xda61...626da
+                   </code>
+                   <Button variant="ghost" size="icon">
+                     <Copy className="h-4 w-4" />
+                   </Button>
+                 </div>
+              </div>
+
+            </CardContent>
+          </Card>
+
+          {/* 2. Security & Recovery Card */}
+          <Card>
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5 text-primary" /> Security & Recovery
+              </CardTitle>
+              <CardDescription>Protect your account and set up recovery methods.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              
+              {/* Active Session */}
+              <div className="flex items-center justify-between">
+                 <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-500/10 rounded-full text-blue-600">
+                      <Laptop className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">Current Session</p>
+                      <p className="text-xs text-muted-foreground">Chrome on macOS • Jakarta, ID</p>
+                    </div>
+                 </div>
+                 <Badge variant="secondary" className="bg-blue-50 text-blue-700">Active</Badge>
+              </div>
+
+              <Separator />
+
+              {/* Social Recovery / Guardians */}
+              <div>
+                 <div className="flex items-center justify-between mb-2">
+                    <div>
+                       <h3 className="text-sm font-medium flex items-center gap-2">
+                         <Users className="h-4 w-4 text-primary" /> Trusted Guardians
+                       </h3>
+                       <p className="text-xs text-muted-foreground">
+                         People who can help recover your account if you lose your key.
+                       </p>
+                    </div>
+                    <Button variant="outline" size="sm">Manage</Button>
+                 </div>
+                 {/* Visual Progress Bar for Guardians */}
+                 <div className="space-y-1.5">
+                    <div className="flex gap-1 h-2">
+                       <div className="flex-1 rounded-l-full bg-emerald-500" />
+                       <div className="flex-1 bg-emerald-500" />
+                       <div className="flex-1 rounded-r-full bg-muted" />
+                    </div>
+                    <p className="text-xs text-right text-muted-foreground">2 of 3 Guardians set</p>
+                 </div>
+              </div>
+
+              <Separator />
+
+              {/* 2FA */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                   <div className="p-2 bg-purple-500/10 rounded-full text-purple-600">
+                     <Smartphone className="h-4 w-4" />
                    </div>
-                   
-                   <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                         <label className="text-sm font-medium">Dark Mode</label>
-                         <p className="text-xs text-muted-foreground">Switch between light and dark themes.</p>
-                      </div>
-                      <div className="flex items-center gap-2 rounded-lg border bg-muted p-1">
-                         <button className="rounded bg-background p-1.5 shadow-sm">
-                            <Moon className="h-4 w-4 text-foreground" />
-                         </button>
-                         <button className="p-1.5 text-muted-foreground hover:text-foreground">
-                            <Sun className="h-4 w-4" />
-                         </button>
-                      </div>
+                   <div className="space-y-0.5">
+                     <Label className="text-sm font-medium">Two-Factor Authentication</Label>
+                     <p className="text-xs text-muted-foreground">Extra security layer.</p>
                    </div>
-
                 </div>
-             </div>
+                <Switch />
+              </div>
 
-             {/* Section 3: Security */}
-             <div className="rounded-xl border bg-card shadow-sm">
-                <div className="border-b px-6 py-4">
-                  <h2 className="font-semibold flex items-center gap-2">
-                    <Shield className="h-4 w-4 text-primary" /> Security
-                  </h2>
-                </div>
-                <div className="p-6 space-y-3">
-                   <button className="group flex w-full items-center justify-between rounded-lg border bg-background p-3 text-sm font-medium hover:border-primary/50 hover:bg-muted/50 transition-all">
-                      <span className="flex items-center gap-3">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500/10 text-green-600">
-                           <Smartphone className="h-4 w-4" />
-                        </div>
-                        2-Factor Auth
-                      </span>
-                      <span className="flex items-center gap-2 text-xs text-muted-foreground group-hover:text-primary">
-                        Enabled <ChevronRight className="h-3 w-3" />
-                      </span>
-                   </button>
-                   <button className="group flex w-full items-center justify-between rounded-lg border bg-background p-3 text-sm font-medium hover:border-primary/50 hover:bg-muted/50 transition-all">
-                      <span className="flex items-center gap-3">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-500/10 text-blue-600">
-                           <Mail className="h-4 w-4" />
-                        </div>
-                        Recovery Email
-                      </span>
-                      <span className="flex items-center gap-2 text-xs text-muted-foreground group-hover:text-primary">
-                        Edit <ChevronRight className="h-3 w-3" />
-                      </span>
-                   </button>
-                </div>
-             </div>
+            </CardContent>
+          </Card>
 
-          </div>
+          {/* 3. Emergency & Privacy Card */}
+          <Card>
+             <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 text-orange-500" /> Emergency & Data
+                </CardTitle>
+             </CardHeader>
+             <CardContent className="space-y-6">
+                
+                {/* Emergency Protocol */}
+                <div className="rounded-lg border border-orange-200 bg-orange-50/50 p-4">
+                   <div className="flex items-start justify-between">
+                      <div className="space-y-1">
+                         <h3 className="font-semibold text-orange-900 text-sm">"Break-Glass" Protocol</h3>
+                         <p className="text-xs text-orange-800/80">
+                           Allow verified paramedics to view vital data (Blood Type, Allergies) in an emergency. Access is logged permanently.
+                         </p>
+                      </div>
+                      <Switch className="data-[state=checked]:bg-orange-500" />
+                   </div>
+                </div>
+
+                {/* Data Export */}
+                <div className="flex items-center justify-between">
+                   <div className="space-y-0.5">
+                      <Label className="text-sm font-medium">Export Medical Records</Label>
+                      <p className="text-xs text-muted-foreground">Download a decrypted copy of your history.</p>
+                   </div>
+                   <Button variant="outline" size="sm" className="gap-2">
+                      <Download className="h-4 w-4" /> Download JSON
+                   </Button>
+                </div>
+             </CardContent>
+          </Card>
 
           {/* Danger Zone */}
-          <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-6">
-             <div className="flex items-center justify-between">
-                <div>
-                   <h3 className="font-semibold text-destructive">Disconnect Wallet</h3>
-                   <p className="text-sm text-destructive/80 mt-1">This will end your current session and lock your local vault.</p>
-                </div>
-                <button className="flex items-center gap-2 rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-destructive/90 transition-colors">
-                   <LogOut className="h-4 w-4" /> Disconnect
-                </button>
+          <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-6 flex items-center justify-between">
+             <div>
+                <h3 className="font-semibold text-destructive text-sm">Disconnect Wallet</h3>
+                <p className="text-xs text-muted-foreground mt-1">This will lock your local vault.</p>
              </div>
+             <Button variant="destructive" size="sm" className="gap-2">
+                <LogOut className="h-4 w-4" /> Disconnect
+             </Button>
           </div>
 
         </div>
