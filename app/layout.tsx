@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   description: "Blockchain-Based Medical Record Dashboard",
   generator: "v0.app",
   icons: {
-    icon: "/vitalis logo.png",
+    icon: "/vitalis.jpeg",
   },
 }
 

@@ -143,9 +143,6 @@ export default function MedicalRecordsPage() {
                 {record.status}
               </Badge>
             </div>
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
-              <ChevronRight className="h-4 w-4" />
-            </Button>
           </div>
         </CardContent>
       </Card>
@@ -172,10 +169,6 @@ export default function MedicalRecordsPage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" className="gap-2">
-                <Download className="h-4 w-4" />
-                Export
-              </Button>
             </div>
           </div>
 
@@ -189,9 +182,6 @@ export default function MedicalRecordsPage() {
                 className="pl-9 bg-card"
               />
             </div>
-            <Button variant="outline" size="icon">
-              <Filter className="h-4 w-4" />
-            </Button>
           </div>
 
           {/* Tabs Navigation */}

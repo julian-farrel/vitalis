@@ -31,7 +31,6 @@ const initialPermissions = [
     facility: "City Hospital",
     scope: "Full Medical History",
     scopeType: "full",
-    expires: "Nov 25, 2025",
     avatar: "SC"
   }
 ]
@@ -82,7 +81,6 @@ export default function DataConsentPage() {
       facility: request.facility,
       scope: request.scope,
       scopeType: request.scope.includes("Full") ? "full" : "limited",
-      expires: "Nov 30, 2025 (Standard 7 Days)", // Default duration
       avatar: request.avatar
     }
     setPermissions(prev => [newPermission, ...prev])
@@ -239,17 +237,17 @@ export default function DataConsentPage() {
                         </Badge>
                       </div>
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground flex items-center gap-2">
+                        {/* <span className="text-muted-foreground flex items-center gap-2">
                           <Clock className="h-4 w-4" /> Expires
                         </span>
-                        <span className="font-medium text-foreground">{perm.expires}</span>
+                        <span className="font-medium text-foreground">{perm.expires}</span> */}
                       </div>
                     </CardContent>
 
                     <CardFooter className="pt-2">
                       <Button 
                         variant="destructive" 
-                        className="w-full bg-destructive/5 text-destructive border-destructive/20 hover:bg-destructive/10"
+                        className="w-full" /* Kept only w-full for width */
                         onClick={() => handleRevoke(perm.id, perm.name)}
                       >
                         Revoke Consent

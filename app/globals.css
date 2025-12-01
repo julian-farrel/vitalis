@@ -37,7 +37,7 @@
 
   /* Destructive: Soft Red */
   --destructive: #ef4444;
-  --destructive-foreground: #fef2f2;
+  --destructive-foreground: #7c0000;
 
   /* Borders: Light Grayish Blue */
   --border: #e2e8f0;
@@ -103,8 +103,8 @@
   --accent-foreground: #0284c7;
 
   /* Destructive: Red */
-  --destructive: #ef4444;
-  --destructive-foreground: #fef2f2;
+  --destructive: #ff0000;
+  --destructive-foreground: #7c0000;
 
   /* Borders: Darker Gray-Blue so inputs define clearly */
   --border: #cbd5e1;

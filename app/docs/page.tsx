@@ -119,9 +119,6 @@ export default function DocsPage() {
                   <p className="mt-2 text-sm text-muted-foreground">
                      Step-by-step tutorials for wallet setup, record uploading, and granting permissions.
                   </p>
-                  <div className="mt-auto pt-4 flex items-center text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                     Start Learning <ChevronRight className="ml-1 h-3 w-3" />
-                  </div>
                </Link>
 
                {/* Card 2: Developer API */}
@@ -133,9 +130,6 @@ export default function DocsPage() {
                   <p className="mt-2 text-sm text-muted-foreground">
                      API references and SDKs for integrating Vitalis into Hospital Management Systems (HMS).
                   </p>
-                  <div className="mt-auto pt-4 flex items-center text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                     View Documentation <ChevronRight className="ml-1 h-3 w-3" />
-                  </div>
                </Link>
 
                {/* Card 3: Privacy Architecture */}
@@ -151,9 +145,6 @@ export default function DocsPage() {
 
                      Deep dive into Zero-Knowledge Proofs (ZKPs) and HIPAA compliance layers.
                   </p>
-                  <div className="mt-auto pt-4 flex items-center text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                     Read Architecture <ChevronRight className="ml-1 h-3 w-3" />
-                  </div>
                </Link>
 
                {/* Card 4: Video Tutorials (New) */}
@@ -165,9 +156,6 @@ export default function DocsPage() {
                   <p className="mt-2 text-sm text-muted-foreground">
                      Visual walkthroughs for doctors and patients on managing digital consents.
                   </p>
-                  <div className="mt-auto pt-4 flex items-center text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                     Watch Videos <ChevronRight className="ml-1 h-3 w-3" />
-                  </div>
                </Link>
 
                {/* Card 5: Smart Contracts (New) */}
@@ -179,9 +167,6 @@ export default function DocsPage() {
                   <p className="mt-2 text-sm text-muted-foreground">
                      Audited Solidity contracts for PermissionRegistry and RecordStorage.
                   </p>
-                  <div className="mt-auto pt-4 flex items-center text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                     View on GitHub <ChevronRight className="ml-1 h-3 w-3" />
-                  </div>
                </Link>
 
             </div>
