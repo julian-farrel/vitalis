@@ -60,11 +60,11 @@ export default function SettingsPage() {
                       <AvatarFallback className="bg-primary text-primary-foreground text-lg font-bold">JD</AvatarFallback>
                     </Avatar>
                     <div className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-emerald-500 border-2 border-background flex items-center justify-center">
-                       <CheckCircle2 className="h-3 w-3 text-white" />
+                        <CheckCircle2 className="h-3 w-3 text-white" />
                     </div>
                   </div>
                   <div>
-                    <CardTitle className="text-xl">John Doe</CardTitle>
+                    <CardTitle className="text-xl">Wesley Nehemia</CardTitle>
                     <div className="flex items-center gap-2 mt-1">
                       <p className="text-sm text-muted-foreground">Patient Account</p>
                       <Badge variant="secondary" className="h-5 px-2 text-[10px] bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 border-emerald-200">
@@ -73,7 +73,8 @@ export default function SettingsPage() {
                     </div>
                   </div>
                 </div>
-                <Button variant="outline" size="sm">Edit Profile</Button>
+                {/* Changed button text to indicate view-only mode */}
+                <Button variant="outline" size="sm" disabled>View Only</Button>
               </div>
             </CardHeader>
 
@@ -82,30 +83,35 @@ export default function SettingsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label>First Name</Label>
-                  <Input defaultValue="John" />
+                  {/* Added readOnly */}
+                  <Input defaultValue="Wesley" readOnly className="bg-muted/30" />
                 </div>
                 <div className="space-y-2">
                   <Label>Last Name</Label>
-                  <Input defaultValue="Doe" />
+                  {/* Added readOnly */}
+                  <Input defaultValue="Nehemia" readOnly className="bg-muted/30" />
                 </div>
                 <div className="space-y-2">
                   <Label>Email Address</Label>
-                  <Input defaultValue="john.doe@example.com" />
+                  {/* Added readOnly */}
+                  <Input defaultValue="wesleytaruna@gmail.com" readOnly className="bg-muted/30" />
                 </div>
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2">
-                     Phone <span className="text-xs text-muted-foreground font-normal">(Optional)</span>
+                      Phone <span className="text-xs text-muted-foreground font-normal">(Optional)</span>
                   </Label>
                   <div className="relative">
-                     <Phone className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                     <Input className="pl-9" placeholder="+1 (555) 000-0000" />
+                      <Phone className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                      {/* Added readOnly */}
+                      <Input className="pl-9 bg-muted/30" placeholder="+1 (555) 000-0000" readOnly />
                   </div>
                 </div>
                 <div className="col-span-1 md:col-span-2 space-y-2">
                   <Label>Location</Label>
                   <div className="relative">
-                     <MapPin className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                     <Input className="pl-9" defaultValue="Jakarta, Indonesia" />
+                      <MapPin className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                      {/* Added readOnly */}
+                      <Input className="pl-9 bg-muted/30" defaultValue="Jakarta, Indonesia" readOnly />
                   </div>
                 </div>
               </div>
@@ -128,15 +134,15 @@ export default function SettingsPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
-                     <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" title="Copy DID">
-                       <Copy className="h-4 w-4" />
-                     </Button>
-                     <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" title="Show QR">
-                       <QrCode className="h-4 w-4" />
-                     </Button>
-                     <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" title="View on Explorer">
-                       <ExternalLink className="h-4 w-4" />
-                     </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" title="Copy DID">
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" title="Show QR">
+                        <QrCode className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" title="View on Explorer">
+                        <ExternalLink className="h-4 w-4" />
+                      </Button>
                   </div>
                 </div>
               </div>
@@ -270,7 +276,7 @@ export default function SettingsPage() {
              </CardContent>
           </Card>
 
-          {/* SECTION 4: Danger Zone - UPDATED WITH HOVER EFFECTS */}
+          {/* SECTION 4: Danger Zone */}
           <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-6 flex flex-col md:flex-row items-center justify-between gap-4 transition-all duration-300 hover:bg-destructive/10 hover:border-destructive/40">
              <div className="flex items-center gap-4">
                 <div className="p-3 bg-white rounded-full border border-destructive/10 shadow-sm">
@@ -284,7 +290,7 @@ export default function SettingsPage() {
              <Button 
                 variant="destructive" 
                 className="gap-2 transition-all duration-300 shadow-sm hover:scale-105 hover:shadow-lg hover:bg-red-600"
-              >
+             >
                 <LogOut className="h-4 w-4" /> Disconnect
              </Button>
           </div>
