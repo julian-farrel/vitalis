@@ -10,7 +10,8 @@ interface UserData {
   email: string
   dob: string
   bloodType: string
-  // Add other fields as needed
+  address: string
+  emergencyContact: string
 }
 
 interface UserContextType {
@@ -24,6 +25,8 @@ const defaultUserData: UserData = {
   email: "No Email",
   dob: "--",
   bloodType: "--",
+  address: "--",
+  emergencyContact: "--",
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined)

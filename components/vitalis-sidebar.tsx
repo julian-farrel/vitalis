@@ -35,7 +35,7 @@ export function VitalisSidebar({ activeItem = "Home" }: VitalisSidebarProps) {
     <aside className="fixed left-0 top-0 z-40 h-screen w-64 border-r border-border bg-sidebar flex flex-col">
       <div className="flex items-center gap-2 px-6 py-5">
          <Image 
-          src="/vitalis logo.png"   
+          src="/vitalis-logo.png"   
           alt="Vitalis Logo" 
           width={70}                
           height={70} 

@@ -9,53 +9,21 @@ import {
   AlertTriangle, 
   FileBadge,
   CheckCircle2,
-  History,
   Activity,
   Fingerprint,
-  Link as LinkIcon,
   Wifi,
-  Server
+  Server,
+  History // <--- Added this import
 } from "lucide-react"
 import { VitalisSidebar } from "@/components/vitalis-sidebar"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
-// Mock Data: Medical Credentials (No crypto jargon)
-const credentials = [
-  {
-    id: "VC-101",
-    name: "National Health ID",
-    issuer: "Ministry of Health",
-    type: "Identity Proof",
-    status: "Active",
-    expiry: "2030-01-01"
-  },
-  {
-    id: "VC-102",
-    name: "Cigna Insurance Policy",
-    issuer: "Cigna Insurance DAO",
-    type: "Insurance Coverage",
-    status: "Active",
-    expiry: "2026-05-20"
-  },
-  {
-    id: "VC-103",
-    name: "Organ Donor Consent",
-    issuer: "Patient Self-Sovereign",
-    type: "Consent",
-    status: "Registered",
-    expiry: "Permanent"
-  }
-]
-
-// Mock Data: System Logs (Abstracted terms)
-const activityLog = [
-  { action: "Granted Read Access", target: "Dr. Sarah Chen", ref: "REF-3A9F", date: "Nov 30, 09:41 AM" },
-  { action: "Registry Sync", target: "Vitalis System", ref: "REF-8B2C", date: "Nov 28, 02:15 PM" },
-  { action: "Profile Update", target: "Self", ref: "REF-1D4E", date: "Nov 25, 11:00 AM" },
-]
+// Empty arrays for now
+const credentials: any[] = []
+const activityLog: any[] = []
 
 export default function DIDWalletPage() {
   const [showSecret, setShowSecret] = useState(false)
@@ -86,7 +54,6 @@ export default function DIDWalletPage() {
           {/* Top Row: Identity & System Status */}
           <div className="grid gap-6 md:grid-cols-3">
             
-            {/* Card 1: The DID (Identity) - Takes up 2 columns */}
             <Card className="md:col-span-2 border-indigo-100 bg-gradient-to-br from-indigo-50/50 to-white">
               <CardHeader className="pb-2">
                 <div className="flex justify-between items-start">
@@ -104,21 +71,20 @@ export default function DIDWalletPage() {
                   <div className="p-4 rounded-lg bg-white border border-indigo-100 shadow-sm flex items-center justify-between">
                     <div className="space-y-1">
                       <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Public ID Number</p>
-                      <code className="text-lg font-mono text-foreground font-semibold">0xdaCEc6c9efd60276Da12A365f461c8f2D85626da</code>
+                      <code className="text-lg font-mono text-foreground font-semibold">0x...</code>
                     </div>
-                    <Button variant="ghost" size="icon" onClick={() => handleCopy("0x71C...9e21")}>
+                    <Button variant="ghost" size="icon" onClick={() => handleCopy("0x...")}>
                       <Copy className="h-4 w-4 text-muted-foreground" />
                     </Button>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                    <span>Linked to 3 Medical Providers</span>
+                    <span>Linked to 0 Medical Providers</span>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Card 2: Account Status (Replaces Network Fuel) */}
             <Card className="flex flex-col justify-between">
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-base">
@@ -159,34 +125,22 @@ export default function DIDWalletPage() {
               </h2>
             </div>
             
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {credentials.map((vc) => (
-                <Card key={vc.id} className="border-border hover:border-indigo-300 transition-all cursor-default group">
-                  <CardHeader className="pb-3">
-                    <div className="flex justify-between items-start">
-                      <Badge variant="secondary" className="bg-primary/5 text-primary text-[10px] uppercase">
-                        {vc.type}
-                      </Badge>
-                      {vc.status === "Active" && (
-                        <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                      )}
-                    </div>
-                    <CardTitle className="text-base mt-2">{vc.name}</CardTitle>
-                    <CardDescription className="text-xs">Issuer: {vc.issuer}</CardDescription>
-                  </CardHeader>
-                  <CardFooter className="pt-0 text-xs text-muted-foreground flex justify-between">
-                    <span>Exp: {vc.expiry}</span>
-                    <Shield className="h-3 w-3 text-muted-foreground group-hover:text-indigo-500 transition-colors" />
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
+            {credentials.length === 0 ? (
+              <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-xl bg-muted/20">
+                <p className="text-muted-foreground">No credentials issued yet.</p>
+              </div>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {credentials.map((vc) => (
+                  <div key={vc.id}>{vc.name}</div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Bottom Section: Security & Logs */}
           <div className="grid gap-6 lg:grid-cols-3">
             
-            {/* Private Secret Manager */}
             <Card className="border-destructive/20 lg:col-span-1">
               <CardHeader>
                 <CardTitle className="text-destructive flex items-center gap-2 text-base">
@@ -205,7 +159,7 @@ export default function DIDWalletPage() {
                 <div className="space-y-2">
                   <div className="relative">
                     <div className={`p-3 rounded bg-muted font-mono text-xs break-all ${showSecret ? 'blur-none text-destructive' : 'blur-sm select-none text-transparent'}`}>
-                      8x99...(HIDDEN_SECRET)...b2a1
+                      (HIDDEN_SECRET)
                     </div>
                     {!showSecret && (
                       <div className="absolute inset-0 flex items-center justify-center">
@@ -224,7 +178,6 @@ export default function DIDWalletPage() {
               </CardContent>
             </Card>
 
-            {/* System Log */}
             <Card className="lg:col-span-2">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-base">
@@ -232,27 +185,13 @@ export default function DIDWalletPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
-                <div className="divide-y">
-                  {activityLog.map((log, i) => (
-                    <div key={i} className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-full bg-indigo-50 text-indigo-600">
-                          <LinkIcon className="h-4 w-4" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-foreground">{log.action}</p>
-                          <p className="text-xs text-muted-foreground">{log.target}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded inline-block mb-1">
-                          {log.ref}
-                        </p>
-                        <p className="text-xs text-muted-foreground">{log.date}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                {activityLog.length === 0 ? (
+                  <div className="p-8 text-center text-muted-foreground text-sm">No activity logs found.</div>
+                ) : (
+                  <div className="divide-y">
+                    {/* Log mapping would go here */}
+                  </div>
+                )}
               </CardContent>
             </Card>
 

@@ -4,9 +4,6 @@ import { useState } from "react"
 import { 
   ShieldCheck, 
   Users, 
-  Clock, 
-  XCircle, 
-  CheckCircle, 
   FileKey,
   Calendar,
   History,
@@ -20,48 +17,11 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
-// Mock Data: Existing Active Permissions
-const initialPermissions = [
-  {
-    id: 1,
-    name: "Dr. Sarah Chen",
-    role: "General Practitioner",
-    facility: "City Hospital",
-    scope: "Full Medical History",
-    scopeType: "full",
-    avatar: "SC"
-  }
-]
-
-// Mock Data: Incoming Requests (The user must Accept or Deny these)
-const initialRequests = [
-  {
-    id: 101,
-    name: "Dr. Emily White",
-    role: "Cardiologist",
-    facility: "Heart Center Institute",
-    scope: "Full Medical History",
-    reason: "Scheduled surgery consultation requiring full history review.",
-    avatar: "EW"
-  },
-  {
-    id: 102,
-    name: "Pacific Insurance",
-    role: "Insurance Provider",
-    facility: "Pacific DAO",
-    scope: "Lab Results Only",
-    reason: "Claim verification for recent bloodwork.",
-    avatar: "PI"
-  }
-]
-
-// Mock Data: History Log
-const initialHistory = [
-  { id: 1, entity: "Dr. Sarah Chen", action: "Approved", date: "Nov 20, 2025", hash: "0x4d2...8a91" },
-  { id: 2, entity: "Insurance Co.", action: "Revoked", date: "Oct 15, 2025", hash: "0x9f1...2b3c" },
-]
+// Initialize with empty arrays (Real data would be fetched here)
+const initialPermissions: any[] = []
+const initialRequests: any[] = []
+const initialHistory: any[] = []
 
 export default function DataConsentPage() {
   const [permissions, setPermissions] = useState(initialPermissions)
@@ -143,11 +103,16 @@ export default function DataConsentPage() {
           </div>
 
           {/* SECTION 1: Pending Requests (The Action Center) */}
-          {requests.length > 0 && (
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                <AlertCircle className="h-5 w-5 text-orange-500" /> Pending Approvals
-              </h2>
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-orange-500" /> Pending Approvals
+            </h2>
+            
+            {requests.length === 0 ? (
+              <div className="p-8 border border-dashed rounded-xl text-center text-muted-foreground bg-muted/20">
+                No pending requests at this time.
+              </div>
+            ) : (
               <div className="grid gap-6 md:grid-cols-2">
                 {requests.map((req) => (
                   <Card key={req.id} className="border-orange-200 bg-orange-50/30 dark:bg-orange-950/10">
@@ -195,8 +160,8 @@ export default function DataConsentPage() {
                   </Card>
                 ))}
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* SECTION 2: Active Permissions */}
           <div>
@@ -236,18 +201,12 @@ export default function DataConsentPage() {
                           {perm.scope}
                         </Badge>
                       </div>
-                      <div className="flex items-center justify-between text-sm">
-                        {/* <span className="text-muted-foreground flex items-center gap-2">
-                          <Clock className="h-4 w-4" /> Expires
-                        </span>
-                        <span className="font-medium text-foreground">{perm.expires}</span> */}
-                      </div>
                     </CardContent>
 
                     <CardFooter className="pt-2">
                       <Button 
                         variant="destructive" 
-                        className="w-full" /* Kept only w-full for width */
+                        className="w-full" 
                         onClick={() => handleRevoke(perm.id, perm.name)}
                       >
                         Revoke Consent
@@ -271,51 +230,42 @@ export default function DataConsentPage() {
               </div>
             </CardHeader>
             <CardContent className="p-0">
-               <div className="relative w-full overflow-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b bg-muted/30 text-left text-muted-foreground">
-                      <th className="p-4 font-medium">Entity</th>
-                      <th className="p-4 font-medium">Action</th>
-                      <th className="p-4 font-medium">Date</th>
-                      <th className="p-4 font-medium text-right">Transaction ID</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {history.map((log) => (
-                      <tr key={log.id} className="hover:bg-muted/50 transition-colors">
-                        <td className="p-4 font-medium">{log.entity}</td>
-                        <td className="p-4">
-                          {log.action === "Approved" && (
-                            <span className="flex items-center gap-2 text-emerald-600 font-medium">
-                              <CheckCircle className="h-4 w-4" /> Approved
-                            </span>
-                          )}
-                          {log.action === "Revoked" && (
-                            <span className="flex items-center gap-2 text-orange-600 font-medium">
-                              <XCircle className="h-4 w-4" /> Revoked
-                            </span>
-                          )}
-                          {log.action === "Denied" && (
-                            <span className="flex items-center gap-2 text-destructive font-medium">
-                              <XCircle className="h-4 w-4" /> Denied
-                            </span>
-                          )}
-                        </td>
-                        <td className="p-4 text-muted-foreground flex items-center gap-2">
-                          <Calendar className="h-3 w-3" />
-                          {log.date}
-                        </td>
-                        <td className="p-4 text-right">
-                           <code className="bg-muted px-2 py-1 rounded text-xs font-mono text-muted-foreground">
-                             {log.hash}
-                           </code>
-                        </td>
+               {history.length === 0 ? (
+                 <div className="p-8 text-center text-muted-foreground text-sm">No activity logs found.</div>
+               ) : (
+                 <div className="relative w-full overflow-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b bg-muted/30 text-left text-muted-foreground">
+                        <th className="p-4 font-medium">Entity</th>
+                        <th className="p-4 font-medium">Action</th>
+                        <th className="p-4 font-medium">Date</th>
+                        <th className="p-4 font-medium text-right">Transaction ID</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-               </div>
+                    </thead>
+                    <tbody className="divide-y">
+                      {history.map((log) => (
+                        <tr key={log.id} className="hover:bg-muted/50 transition-colors">
+                          <td className="p-4 font-medium">{log.entity}</td>
+                          <td className="p-4">
+                            {/* Status badges would go here */}
+                            {log.action}
+                          </td>
+                          <td className="p-4 text-muted-foreground flex items-center gap-2">
+                            <Calendar className="h-3 w-3" />
+                            {log.date}
+                          </td>
+                          <td className="p-4 text-right">
+                             <code className="bg-muted px-2 py-1 rounded text-xs font-mono text-muted-foreground">
+                               {log.hash}
+                             </code>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                 </div>
+               )}
             </CardContent>
           </Card>
 

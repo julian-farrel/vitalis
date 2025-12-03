@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { usePrivy } from "@privy-io/react-auth"
-import { useUser } from "@/context/user-context" // <--- Import Context Hook
+import { useUser } from "@/context/user-context"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -14,7 +14,7 @@ import { User, HeartPulse, ArrowRight, CheckCircle2 } from "lucide-react"
 
 export default function OnboardingPage() {
   const { ready, authenticated } = usePrivy()
-  const { updateUserData } = useUser() // <--- Use context to update data
+  const { updateUserData } = useUser()
   const router = useRouter()
   const [step, setStep] = useState(1)
   
@@ -53,13 +53,15 @@ export default function OnboardingPage() {
   }
 
   const handleSubmit = () => {
-    // 1. Update Global Context (This updates Sidebar instantly)
+    // 1. Update Global Context with ALL fields
     updateUserData({
       firstName: formData.firstName,
       lastName: formData.lastName,
       email: formData.email,
       dob: formData.dob,
-      bloodType: formData.bloodType
+      bloodType: formData.bloodType,
+      address: formData.address,
+      emergencyContact: formData.emergencyContact
     })
 
     // 2. Mark onboarding as complete
@@ -74,7 +76,6 @@ export default function OnboardingPage() {
   return (
     <div className="min-h-screen bg-secondary/30 flex items-center justify-center p-6">
       <Card className="w-full max-w-2xl shadow-lg border-border">
-        {/* Same UI code as before... */}
         <CardHeader className="text-center pb-8">
           <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
             {step === 1 ? <User className="text-primary h-6 w-6" /> : <HeartPulse className="text-primary h-6 w-6" />}

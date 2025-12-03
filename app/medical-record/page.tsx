@@ -6,21 +6,14 @@ import {
   FlaskConical, 
   Pill, 
   Activity, 
-  Search, 
-  Filter, 
-  Download, 
-  ChevronRight, 
-  Calendar,
-  ShieldCheck
+  Search
 } from "lucide-react"
 import { VitalisSidebar } from "@/components/vitalis-sidebar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 
-// 1. Define the shape of your data to fix TypeScript errors
+// Define the shape of your data
 interface MedicalRecord {
   id: string
   title: string
@@ -33,127 +26,32 @@ interface MedicalRecord {
   hash: string
 }
 
-const records: MedicalRecord[] = [
-  {
-    id: "REC-001",
-    title: "Annual Physical Examination",
-    provider: "Dr. Sarah Chen",
-    facility: "Metro Health Clinic",
-    date: "Nov 20, 2025",
-    type: "visit",
-    category: "Visits & Notes",
-    status: "Completed",
-    hash: "0x8f...2a1",
-  },
-  {
-    id: "LAB-002",
-    title: "Complete Blood Count (CBC)",
-    provider: "City Medical Lab",
-    facility: "City Labs",
-    date: "Nov 20, 2025",
-    type: "lab",
-    category: "Labs & Diagnostics",
-    status: "Normal",
-    hash: "0x3c...9b2",
-  },
-  {
-    id: "IMG-003",
-    title: "MRI - Left Knee",
-    provider: "Radiology Center",
-    facility: "General Hospital",
-    date: "Oct 15, 2025",
-    type: "lab",
-    category: "Labs & Diagnostics",
-    status: "Reviewed",
-    hash: "0x7d...4e3",
-  },
-  {
-    id: "MED-004",
-    title: "Amoxicillin 500mg",
-    provider: "Dr. Michael Park",
-    facility: "Pharmacy Dept",
-    date: "Oct 10, 2025",
-    type: "medication",
-    category: "Medications",
-    status: "Active",
-    hash: "0x1a...8f4",
-  },
-  {
-    id: "PROC-005",
-    title: "ACL Reconstruction Surgery",
-    provider: "Dr. James Wilson",
-    facility: "Orthopedic Surgery Center",
-    date: "Oct 03, 2025",
-    type: "procedure",
-    category: "Procedures & Surgeries",
-    status: "Successful",
-    hash: "0x9e...1c5",
-  },
-]
+// Emtpy array for now
+const records: MedicalRecord[] = []
 
 export default function MedicalRecordsPage() {
   
-  // 2. Add type annotation to the parameter
   const getRecords = (filterType: string) => {
     if (filterType === "all") return records;
     return records.filter(r => r.type === filterType);
   }
 
-  // 3. Add type annotation to the props
-  const RecordItem = ({ record }: { record: MedicalRecord }) => {
-    const getIcon = () => {
-      switch(record.type) {
-        case 'visit': return <Stethoscope className="h-5 w-5 text-blue-500" />;
-        case 'lab': return <FlaskConical className="h-5 w-5 text-purple-500" />;
-        case 'medication': return <Pill className="h-5 w-5 text-emerald-500" />;
-        case 'procedure': return <Activity className="h-5 w-5 text-rose-500" />;
-        default: return <FileText className="h-5 w-5 text-gray-500" />;
-      }
-    }
-
-    return (
-      <Card className="mb-3 hover:bg-secondary/40 transition-colors border-border">
-        <CardContent className="p-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className={`p-2.5 rounded-lg bg-background border border-border`}>
-              {getIcon()}
-            </div>
-            <div>
-              <h3 className="font-semibold text-foreground">{record.title}</h3>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span>{record.provider}</span>
-                <span>•</span>
-                <span>{record.facility}</span>
-              </div>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-6">
-            <div className="hidden lg:flex items-center gap-1.5 px-2 py-1 bg-primary/5 rounded text-xs text-primary font-medium">
-              <ShieldCheck className="h-3 w-3" />
-              Verified
-            </div>
-
-            <div className="text-right">
-              <div className="flex items-center justify-end gap-2 text-sm text-muted-foreground mb-1">
-                <Calendar className="h-3 w-3" />
-                {record.date}
-              </div>
-              <Badge variant="outline" className="text-xs font-normal">
-                {record.status}
-              </Badge>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
+  const EmptyState = () => (
+    <div className="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed rounded-xl bg-muted/20">
+      <div className="p-4 bg-muted rounded-full mb-4">
+        <FileText className="h-8 w-8 text-muted-foreground" />
+      </div>
+      <h3 className="text-lg font-semibold">No records found</h3>
+      <p className="text-muted-foreground max-w-sm mt-1">
+        There are no medical records uploaded to your decentralized storage yet.
+      </p>
+    </div>
+  )
 
   return (
     <div className="flex min-h-screen w-full bg-background">
       <VitalisSidebar activeItem="Medical Record" />
 
-      
       <main className="pl-64 w-full">
         <div className="flex flex-col gap-6 p-8 max-w-7xl mx-auto">
           
@@ -167,8 +65,6 @@ export default function MedicalRecordsPage() {
                 <h1 className="text-2xl font-bold tracking-tight text-foreground">Medical Records</h1>
                 <p className="text-muted-foreground">View and manage your on-chain health documents.</p>
               </div>
-            </div>
-            <div className="flex items-center gap-2">
             </div>
           </div>
 
@@ -194,40 +90,36 @@ export default function MedicalRecordsPage() {
               <TabsTrigger value="procedure" className="py-2">Surgeries</TabsTrigger>
             </TabsList>
 
-            {/* Tab Contents */}
             <TabsContent value="all" className="mt-0 space-y-4">
-              <div className="mb-2 text-sm font-medium text-muted-foreground">Timeline View</div>
-              {getRecords('all').map((record) => (
-                <RecordItem key={record.id} record={record} />
-              ))}
+              {getRecords('all').length > 0 ? (
+                 getRecords('all').map((record) => (
+                   <div key={record.id}>{record.title}</div>
+                 ))
+              ) : <EmptyState />}
             </TabsContent>
 
             <TabsContent value="visit" className="mt-0">
-               <div className="mb-2 text-sm font-medium text-muted-foreground">Consultations & Notes</div>
-              {getRecords('visit').map((record) => (
-                <RecordItem key={record.id} record={record} />
-              ))}
+              {getRecords('visit').length > 0 ? (
+                 getRecords('visit').map((record) => <div key={record.id}>{record.title}</div>)
+              ) : <EmptyState />}
             </TabsContent>
 
             <TabsContent value="lab" className="mt-0">
-               <div className="mb-2 text-sm font-medium text-muted-foreground">Diagnostics & Imaging</div>
-              {getRecords('lab').map((record) => (
-                <RecordItem key={record.id} record={record} />
-              ))}
+              {getRecords('lab').length > 0 ? (
+                 getRecords('lab').map((record) => <div key={record.id}>{record.title}</div>)
+              ) : <EmptyState />}
             </TabsContent>
 
             <TabsContent value="medication" className="mt-0">
-               <div className="mb-2 text-sm font-medium text-muted-foreground">Prescriptions & History</div>
-              {getRecords('medication').map((record) => (
-                <RecordItem key={record.id} record={record} />
-              ))}
+              {getRecords('medication').length > 0 ? (
+                 getRecords('medication').map((record) => <div key={record.id}>{record.title}</div>)
+              ) : <EmptyState />}
             </TabsContent>
 
             <TabsContent value="procedure" className="mt-0">
-               <div className="mb-2 text-sm font-medium text-muted-foreground">Operations & Procedures</div>
-              {getRecords('procedure').map((record) => (
-                <RecordItem key={record.id} record={record} />
-              ))}
+              {getRecords('procedure').length > 0 ? (
+                 getRecords('procedure').map((record) => <div key={record.id}>{record.title}</div>)
+              ) : <EmptyState />}
             </TabsContent>
           </Tabs>
 

@@ -5,78 +5,33 @@ import { useRouter } from "next/navigation"
 import { usePrivy } from "@privy-io/react-auth"
 import { VitalisSidebar } from "@/components/vitalis-sidebar"
 import { 
-  Calendar, 
-  Clock, 
-  FileText, 
-  Shield, 
   Users, 
   Bell, 
   ShieldCheck, 
-  Database 
+  Database,
+  Inbox,
+  Calendar, // <--- Added
+  Shield    // <--- Added
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Progress } from "@/components/ui/progress"
-
-const recentRecords = [
-  {
-    type: "Lab Results",
-    date: "Nov 20, 2025",
-    provider: "City Medical Lab",
-    status: "Verified",
-  },
-  {
-    type: "Prescription",
-    date: "Nov 15, 2025",
-    provider: "Dr. Sarah Chen",
-    status: "Active",
-  },
-  {
-    type: "Visit Summary",
-    date: "Nov 10, 2025",
-    provider: "Metro Health Clinic",
-    status: "Verified",
-  },
-]
-
-const upcomingAppointments = [
-  {
-    doctor: "Dr. Sarah Chen",
-    specialty: "General Practitioner",
-    date: "Nov 28, 2025",
-    time: "10:00 AM",
-    initials: "SC",
-  },
-  {
-    doctor: "Dr. Michael Park",
-    specialty: "Cardiologist",
-    date: "Dec 5, 2025",
-    time: "2:30 PM",
-    initials: "MP",
-  },
-]
+import { useUser } from "@/context/user-context"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar" // Added Avatar imports just in case, as they were used in the previous version
 
 export default function DashboardPage() {
   const [activeNav, setActiveNav] = useState("Home")
   const { ready, authenticated } = usePrivy()
   const router = useRouter()
-  const [userName, setUserName] = useState("User")
+  const { userData } = useUser()
+
+  // Real data state (initially empty)
+  const recentRecords: any[] = [] 
+  const upcomingAppointments: any[] = []
 
   useEffect(() => {
     if (ready && !authenticated) {
       router.push("/")
-    }
-    
-    // <CHANGE> Fetch user name from local storage
-    if (typeof window !== 'undefined') {
-      const storedData = localStorage.getItem("vitalis_user_data")
-      if (storedData) {
-        const parsed = JSON.parse(storedData)
-        if (parsed.firstName) {
-          setUserName(parsed.firstName)
-        }
-      }
     }
   }, [ready, authenticated, router])
 
@@ -91,8 +46,7 @@ export default function DashboardPage() {
       <section className="pl-64">
         <div className="p-8">
           <div className="mb-8">
-            {/* <CHANGE> Use dynamic name */}
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Welcome back, {userName}</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Welcome back, {userData.firstName}</h1>
             <p className="text-muted-foreground mt-1">Your health data is secure and owned by you on the blockchain.</p>
           </div>
 
@@ -108,7 +62,7 @@ export default function DashboardPage() {
                       Active
                     </Badge>
                   </div>
-                  <p className="text-2xl font-bold text-foreground">3 Providers</p>
+                  <p className="text-2xl font-bold text-foreground">0 Providers</p>
                   <p className="text-sm text-muted-foreground mt-1">
                     Currently accessing your data
                   </p>
@@ -123,13 +77,13 @@ export default function DashboardPage() {
                     <div className="p-2 rounded-lg bg-orange-500/10">
                       <Bell className="h-5 w-5 text-orange-600" />
                     </div>
-                    <Badge variant="destructive" className="animate-pulse">
-                      1 New
+                    <Badge variant="secondary" className="bg-orange-100 text-orange-700">
+                      0 New
                     </Badge>
                   </div>
-                  <p className="font-semibold text-foreground truncate">Metro Health Clinic</p>
+                  <p className="font-semibold text-foreground truncate">No Requests</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Requested read access
+                    Pending read access
                   </p>
                 </div>
               </CardContent>
@@ -167,7 +121,7 @@ export default function DashboardPage() {
                       Synced
                     </div>
                   </div>
-                  <p className="text-2xl font-bold text-foreground">124 Blocks</p>
+                  <p className="text-2xl font-bold text-foreground">0 Blocks</p>
                   <p className="text-sm text-muted-foreground mt-1">
                     Secured medical history
                   </p>
@@ -184,32 +138,17 @@ export default function DashboardPage() {
                   <CardDescription>Your latest verified health documents</CardDescription>
                 </div>
               </CardHeader>
-              <CardContent className="pt-0">
-                <div className="space-y-3">
-                  {recentRecords.map((record, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-4 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="p-2 rounded-lg bg-primary/10">
-                          <FileText className="h-5 w-5 text-primary" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-sm text-foreground">{record.type}</p>
-                          <p className="text-xs text-muted-foreground">{record.provider}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm text-muted-foreground">{record.date}</p>
-                        <Badge variant="outline" className="text-xs border-primary/30 text-primary">
-                          <Shield className="h-3 w-3 mr-1" />
-                          {record.status}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              <CardContent>
+                {recentRecords.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-10 text-center text-muted-foreground">
+                    <Inbox className="h-10 w-10 mb-2 opacity-50" />
+                    <p>No medical records found.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {/* Map recentRecords here when data exists */}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -218,34 +157,17 @@ export default function DashboardPage() {
                 <CardTitle className="text-lg text-foreground">Upcoming Appointments</CardTitle>
                 <CardDescription>Your scheduled visits</CardDescription>
               </CardHeader>
-              <CardContent className="pt-0">
-                <div className="space-y-4">
-                  {upcomingAppointments.map((apt, index) => (
-                    <div key={index} className="p-4 rounded-lg border border-border bg-secondary/50">
-                      <div className="flex items-center gap-3 mb-3">
-                        <Avatar className="h-10 w-10">
-                          <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
-                            {apt.initials}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium text-sm text-foreground">{apt.doctor}</p>
-                          <p className="text-xs text-muted-foreground">{apt.specialty}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1.5">
-                          <Calendar className="h-4 w-4" />
-                          {apt.date}
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <Clock className="h-4 w-4" />
-                          {apt.time}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              <CardContent>
+                {upcomingAppointments.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-10 text-center text-muted-foreground">
+                    <Calendar className="h-10 w-10 mb-2 opacity-50" />
+                    <p>No upcoming appointments.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Map upcomingAppointments here when data exists */}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

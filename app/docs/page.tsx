@@ -4,18 +4,13 @@ import {
   Download, 
   Code, 
   Shield, 
-  ChevronRight, 
   GraduationCap, 
   Search, 
   Youtube, 
-  Terminal, 
-  Activity, 
-  Server, 
-  Database 
+  Terminal 
 } from "lucide-react"
 import { VitalisSidebar } from "@/components/vitalis-sidebar"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 
 export const metadata = {
@@ -52,31 +47,6 @@ export default function DocsPage() {
                 className="pl-10 bg-background border-border shadow-sm"
               />
             </div>
-          </div>
-
-          {/* System Status Indicators Feature */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-             <div className="flex items-center justify-between p-4 rounded-lg border bg-card/50">
-                <div className="flex items-center gap-3">
-                   <Activity className="h-5 w-5 text-emerald-500" />
-                   <span className="font-medium text-sm">Ethereum Mainnet</span>
-                </div>
-                <Badge variant="outline" className="text-emerald-600 bg-emerald-500/10 border-emerald-200">Operational</Badge>
-             </div>
-             <div className="flex items-center justify-between p-4 rounded-lg border bg-card/50">
-                <div className="flex items-center gap-3">
-                   <Database className="h-5 w-5 text-blue-500" />
-                   <span className="font-medium text-sm">IPFS Storage</span>
-                </div>
-                <Badge variant="outline" className="text-blue-600 bg-blue-500/10 border-blue-200">Operational</Badge>
-             </div>
-             <div className="flex items-center justify-between p-4 rounded-lg border bg-card/50">
-                <div className="flex items-center gap-3">
-                   <Server className="h-5 w-5 text-orange-500" />
-                   <span className="font-medium text-sm">Vitalis API</span>
-                </div>
-                <Badge variant="outline" className="text-orange-600 bg-orange-500/10 border-orange-200">v2.1 Stable</Badge>
-             </div>
           </div>
 
           {/* Featured: Whitepaper Download */}
@@ -139,10 +109,6 @@ export default function DocsPage() {
                   </div>
                   <h4 className="font-semibold group-hover:text-primary transition-colors">Security Architecture</h4>
                   <p className="mt-2 text-sm text-muted-foreground">
-                     
-
-[Image of blockchain medical record data flow architecture]
-
                      Deep dive into Zero-Knowledge Proofs (ZKPs) and HIPAA compliance layers.
                   </p>
                </Link>
@@ -190,7 +156,7 @@ export default function DocsPage() {
                 <div>
                    <h5 className="font-medium text-sm">What happens in an emergency if I am unconscious?</h5>
                    <p className="mt-1 text-sm text-muted-foreground">
-                      Vitalis includes a "Break-Glass" protocol. Verified Emergency Responders can request temporary access. This triggers a smart contract event that logs their identity and the time of access immutably, ensuring full accountability for the intrusion.
+                      Vitalis includes a &quot;Break-Glass&quot; protocol. Verified Emergency Responders can request temporary access. This triggers a smart contract event that logs their identity and the time of access immutably, ensuring full accountability for the intrusion.
                    </p>
                 </div>
                 <div className="h-px bg-border" />
@@ -199,7 +165,7 @@ export default function DocsPage() {
                 <div>
                    <h5 className="font-medium text-sm">Do I have to pay gas fees to view my own records?</h5>
                    <p className="mt-1 text-sm text-muted-foreground">
-                      No. Viewing records is a "read-only" operation and is free. However, granting access to a new doctor or uploading a new record requires a small gas fee to write the transaction to the Ethereum network.
+                      No. Viewing records is a &quot;read-only&quot; operation and is free. However, granting access to a new doctor or uploading a new record requires a small gas fee to write the transaction to the Ethereum network.
                    </p>
                 </div>
                 <div className="h-px bg-border" />

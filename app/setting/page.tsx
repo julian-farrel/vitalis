@@ -1,39 +1,26 @@
 "use client"
 
 import { 
-  Shield, 
   LogOut, 
-  Laptop,
-  CheckCircle2,
-  Copy,
-  MapPin,
-  Phone,
-  Wallet,
-  QrCode,
-  ExternalLink,
   KeyRound,
-  Lock,
-  Database,
-  Globe,
-  Server,
-  FileCheck,
-  ShieldCheck,
-  Activity
+  User,
+  Mail,
+  MapPin,
+  Phone
 } from "lucide-react"
 import { VitalisSidebar } from "@/components/vitalis-sidebar"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import { Separator } from "@/components/ui/separator"
+import { Label } from "@/components/ui/label"
 import { usePrivy } from "@privy-io/react-auth"
 import { useRouter } from "next/navigation"
+import { useUser } from "@/context/user-context"
 
 export default function SettingsPage() {
   const { logout } = usePrivy()
   const router = useRouter()
+  const { userData } = useUser()
 
   const handleDisconnect = async () => {
     await logout()
@@ -53,8 +40,47 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* ... Rest of your UI components ... */}
-          {/* Re-use the card structures from your previous code for UI consistency */}
+          {/* Profile Section - Read Only */}
+          <Card className="border-border">
+            <CardHeader>
+              <CardTitle>Personal Information</CardTitle>
+              <CardDescription>Your registered identity details (Read-Only).</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Full Name</Label>
+                  <div className="relative">
+                    <User className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input disabled value={`${userData.firstName} ${userData.lastName}`} className="pl-9" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Email Address</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input disabled value={userData.email} className="pl-9" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Home Address</Label>
+                <div className="relative">
+                  <MapPin className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input disabled value={userData.address} className="pl-9" />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Emergency Contact</Label>
+                <div className="relative">
+                  <Phone className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input disabled value={userData.emergencyContact} className="pl-9" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
           
           <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-6 flex flex-col md:flex-row items-center justify-between gap-4 transition-all duration-300 hover:bg-destructive/10 hover:border-destructive/40">
              <div className="flex items-center gap-4">
