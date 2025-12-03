@@ -4,6 +4,7 @@ import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
+import Providers from "@/components/providers" // <--- Import Providers
 
 export const metadata: Metadata = {
   title: "Vitalis",
@@ -20,10 +21,12 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    // <CHANGE> Added dark class for dark mode theme
     <html lang="en" className="dark antialiased">
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
-        {children}
+        {/* Wrap children with Providers */}
+        <Providers>
+          {children}
+        </Providers>
         <Analytics />
       </body>
     </html>
