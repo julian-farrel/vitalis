@@ -73,7 +73,7 @@ export function VitalisSidebar({ activeItem = "Home" }: VitalisSidebarProps) {
 
           <Separator className="my-4 bg-blue-200" />
           <div className="flex items-center gap-2 text-sm">
-            <span className="text-muted-foreground font-medium">ID:</span>
+            <span className="text-muted-foreground font-medium">Address:</span>
             <span 
               className="text-blue-600 font-mono truncate cursor-help" 
               title={walletAddress || "No wallet connected"}

@@ -10,8 +10,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { User, HeartPulse, ArrowRight, CheckCircle2 } from "lucide-react"
-import { supabase } from "@/lib/supabase" // Check import
+import { User, HeartPulse, ArrowRight, CheckCircle2, Loader2 } from "lucide-react"
+import { supabase } from "@/lib/supabase"
+import { generateHealthWallet } from "@/lib/web3" // <--- IMPORT HELPER
 
 export default function OnboardingPage() {
   const { ready, authenticated, user } = usePrivy()
@@ -54,30 +55,20 @@ export default function OnboardingPage() {
   }
 
   const handleSubmit = async () => {
-    // Safety check
-    if (!user?.wallet?.address) {
-      console.error("No wallet connected");
-      return;
-    }
-    
+    if (!user?.wallet?.address) return;
     setIsLoading(true)
 
     try {
-      // 1. Update Context
-      updateUserData({
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        dob: formData.dob,
-        bloodType: formData.bloodType,
-        address: formData.address,
-        emergencyContact: formData.emergencyContact,
-        allergies: formData.allergies || "None",
-        medications: formData.medications || "None",
-        conditions: formData.conditions || "None"
-      })
+      // 1. Generate the DID (Health Wallet)
+      const newHealthWallet = generateHealthWallet()
+      const didAddress = newHealthWallet.address
+      
+      // NOTE: In a real production app, you would ENCRYPT 'newHealthWallet.privateKey' 
+      // and store it securely, or show it to the user once to save.
+      // For this demo, we just store the public address.
+      console.log("Generated DID:", didAddress)
 
-      // 2. Save to Supabase
+      // 2. Save everything to Supabase
       const { error } = await supabase
         .from('users')
         .upsert({
@@ -92,18 +83,24 @@ export default function OnboardingPage() {
           allergies: formData.allergies,
           medications: formData.medications,
           conditions: formData.conditions,
+          did_wallet_address: didAddress, // <--- SAVE DID
           onboarding_complete: true
         })
 
-      if (error) {
-        console.error("Supabase Error:", error)
-        alert(`Error saving data: ${error.message}`)
-      } else {
-        router.push("/dashboard")
-      }
+      if (error) throw error
+      
+      // 3. Update Context
+      updateUserData({
+        ...formData,
+        didWalletAddress: didAddress
+      })
+
+      // 4. Redirect
+      router.push("/dashboard")
 
     } catch (error) {
-      console.error("Unexpected error:", error)
+      console.error("Error:", error)
+      alert("Something went wrong.")
     } finally {
       setIsLoading(false)
     }
@@ -222,8 +219,15 @@ export default function OnboardingPage() {
               </Button>
             ) : (
               <Button onClick={handleSubmit} className="bg-emerald-600 hover:bg-emerald-700 text-white" disabled={isLoading}>
-                {isLoading ? "Saving..." : "Complete Setup"}
-                {!isLoading && <CheckCircle2 className="ml-2 h-4 w-4" />}
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating ID...
+                  </>
+                ) : (
+                  <>
+                    Complete Setup <CheckCircle2 className="ml-2 h-4 w-4" />
+                  </>
+                )}
               </Button>
             )}
           </div>

@@ -13,13 +13,14 @@ import {
   Fingerprint,
   Wifi,
   Server,
-  History // <--- Added this import
+  History
 } from "lucide-react"
 import { VitalisSidebar } from "@/components/vitalis-sidebar"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { useUser } from "@/context/user-context" // <--- Import Context
 
 // Empty arrays for now
 const credentials: any[] = []
@@ -27,9 +28,11 @@ const activityLog: any[] = []
 
 export default function DIDWalletPage() {
   const [showSecret, setShowSecret] = useState(false)
+  const { userData } = useUser() // <--- Get User Data
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text)
+    alert("Address copied to clipboard!")
   }
 
   return (
@@ -71,21 +74,25 @@ export default function DIDWalletPage() {
                   <div className="p-4 rounded-lg bg-white border border-indigo-100 shadow-sm flex items-center justify-between">
                     <div className="space-y-1">
                       <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Public ID Number</p>
-                      <code className="text-lg font-mono text-foreground font-semibold">0x...</code>
+                      {/* Display Dynamic DID Address */}
+                      <code className="text-lg font-mono text-foreground font-semibold">
+                        {userData.didWalletAddress || "Generating..."}
+                      </code>
                     </div>
-                    <Button variant="ghost" size="icon" onClick={() => handleCopy("0x...")}>
+                    <Button variant="ghost" size="icon" onClick={() => handleCopy(userData.didWalletAddress)}>
                       <Copy className="h-4 w-4 text-muted-foreground" />
                     </Button>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                    <span>Linked to 0 Medical Providers</span>
+                    <span>Linked to Smart Contract Registry</span>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="flex flex-col justify-between">
+            {/* ... Keep the rest of your Card components as they were ... */}
+             <Card className="flex flex-col justify-between">
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <Activity className="h-4 w-4 text-emerald-600" /> System Status
@@ -117,8 +124,8 @@ export default function DIDWalletPage() {
             </Card>
           </div>
 
-          {/* Middle Section: Credentials */}
-          <div className="space-y-4">
+          {/* ... Rest of the page (Credentials, Logs) ... */}
+           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold flex items-center gap-2">
                 <FileBadge className="h-5 w-5 text-indigo-600" /> Verifiable Credentials
@@ -131,16 +138,16 @@ export default function DIDWalletPage() {
               </div>
             ) : (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {credentials.map((vc) => (
+                {credentials.map((vc: any) => (
                   <div key={vc.id}>{vc.name}</div>
                 ))}
               </div>
             )}
           </div>
 
-          {/* Bottom Section: Security & Logs */}
-          <div className="grid gap-6 lg:grid-cols-3">
+           <div className="grid gap-6 lg:grid-cols-3">
             
+            {/* Private Secret Manager */}
             <Card className="border-destructive/20 lg:col-span-1">
               <CardHeader>
                 <CardTitle className="text-destructive flex items-center gap-2 text-base">
@@ -159,7 +166,7 @@ export default function DIDWalletPage() {
                 <div className="space-y-2">
                   <div className="relative">
                     <div className={`p-3 rounded bg-muted font-mono text-xs break-all ${showSecret ? 'blur-none text-destructive' : 'blur-sm select-none text-transparent'}`}>
-                      (HIDDEN_SECRET)
+                      (This would be the generated private key)
                     </div>
                     {!showSecret && (
                       <div className="absolute inset-0 flex items-center justify-center">
@@ -178,6 +185,7 @@ export default function DIDWalletPage() {
               </CardContent>
             </Card>
 
+            {/* System Log */}
             <Card className="lg:col-span-2">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-base">
@@ -189,13 +197,13 @@ export default function DIDWalletPage() {
                   <div className="p-8 text-center text-muted-foreground text-sm">No activity logs found.</div>
                 ) : (
                   <div className="divide-y">
-                    {/* Log mapping would go here */}
                   </div>
                 )}
               </CardContent>
             </Card>
 
           </div>
+
         </div>
       </main>
     </div>
