@@ -1,0 +1,70 @@
+"use client"
+
+import React, { createContext, useContext, useState, useEffect } from "react"
+import { usePrivy } from "@privy-io/react-auth"
+
+// Define the shape of the user data
+interface UserData {
+  firstName: string
+  lastName: string
+  email: string
+  dob: string
+  bloodType: string
+  // Add other fields as needed
+}
+
+interface UserContextType {
+  userData: UserData
+  updateUserData: (data: Partial<UserData>) => void
+}
+
+const defaultUserData: UserData = {
+  firstName: "Guest",
+  lastName: "User",
+  email: "No Email",
+  dob: "--",
+  bloodType: "--",
+}
+
+const UserContext = createContext<UserContextType | undefined>(undefined)
+
+export function UserProvider({ children }: { children: React.ReactNode }) {
+  const { user } = usePrivy()
+  const [userData, setUserData] = useState<UserData>(defaultUserData)
+
+  // Load data from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("vitalis_user_data")
+      if (stored) {
+        setUserData({ ...defaultUserData, ...JSON.parse(stored) })
+      } else if (user?.email?.address) {
+        // Fallback: use Privy email if no local data
+        setUserData((prev) => ({ ...prev, email: user.email!.address }))
+      }
+    }
+  }, [user])
+
+  // Function to update state AND localStorage
+  const updateUserData = (newData: Partial<UserData>) => {
+    setUserData((prev) => {
+      const updated = { ...prev, ...newData }
+      localStorage.setItem("vitalis_user_data", JSON.stringify(updated))
+      return updated
+    })
+  }
+
+  return (
+    <UserContext.Provider value={{ userData, updateUserData }}>
+      {children}
+    </UserContext.Provider>
+  )
+}
+
+export function useUser() {
+  const context = useContext(UserContext)
+  if (context === undefined) {
+    throw new Error("useUser must be used within a UserProvider")
+  }
+  return context
+}

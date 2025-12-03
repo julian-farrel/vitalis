@@ -14,9 +14,17 @@ export default function LandingPage() {
 
   useEffect(() => {
     if (ready && authenticated) {
-      // <CHANGE> Mark this session as active so we don't auto-logout on refresh
+      // Set the session flag so user stays logged in on refresh
       sessionStorage.setItem("vitalis_session_active", "true")
-      router.push("/dashboard")
+      
+      // Check if user has finished onboarding
+      const isOnboarded = localStorage.getItem("vitalis_onboarding_complete")
+      
+      if (isOnboarded === "true") {
+        router.push("/dashboard")
+      } else {
+        router.push("/onboarding")
+      }
     }
   }, [ready, authenticated, router])
 

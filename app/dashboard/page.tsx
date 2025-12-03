@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { usePrivy } from "@privy-io/react-auth" // <--- Added
+import { usePrivy } from "@privy-io/react-auth"
 import { VitalisSidebar } from "@/components/vitalis-sidebar"
 import { 
   Calendar, 
@@ -57,42 +57,46 @@ const upcomingAppointments = [
   },
 ]
 
-export default function DashboardPage() { // Renamed to DashboardPage
+export default function DashboardPage() {
   const [activeNav, setActiveNav] = useState("Home")
-  
-  // --- AUTH PROTECTION START ---
   const { ready, authenticated } = usePrivy()
   const router = useRouter()
+  const [userName, setUserName] = useState("User")
 
   useEffect(() => {
     if (ready && !authenticated) {
       router.push("/")
     }
+    
+    // <CHANGE> Fetch user name from local storage
+    if (typeof window !== 'undefined') {
+      const storedData = localStorage.getItem("vitalis_user_data")
+      if (storedData) {
+        const parsed = JSON.parse(storedData)
+        if (parsed.firstName) {
+          setUserName(parsed.firstName)
+        }
+      }
+    }
   }, [ready, authenticated, router])
 
   if (!ready || !authenticated) {
-    return null // Or a loading spinner
+    return null
   }
-  // --- AUTH PROTECTION END ---
 
   return (
     <main className="min-h-dvh bg-background">
       <VitalisSidebar activeItem={activeNav} />
 
-      {/* Main Content */}
       <section className="pl-64">
         <div className="p-8">
-          {/* Header */}
           <div className="mb-8">
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Welcome back, Wesley</h1>
+            {/* <CHANGE> Use dynamic name */}
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Welcome back, {userName}</h1>
             <p className="text-muted-foreground mt-1">Your health data is secure and owned by you on the blockchain.</p>
           </div>
 
-          {/* ... REST OF YOUR ORIGINAL DASHBOARD CODE ... */}
-          {/* Copy everything from your original app/page.tsx starting from div className="grid grid-cols-1..." down to the end of the return statement */}
-          
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            {/* Card 1: Active Permissions */}
             <Card className="border-border bg-card">
               <CardContent className="p-5 flex flex-col h-full justify-between">
                 <div>
@@ -112,7 +116,6 @@ export default function DashboardPage() { // Renamed to DashboardPage
               </CardContent>
             </Card>
 
-            {/* Card 2: Pending Access Requests */}
             <Card className="border-border bg-card">
               <CardContent className="p-5 flex flex-col h-full justify-between">
                 <div>
@@ -132,7 +135,6 @@ export default function DashboardPage() { // Renamed to DashboardPage
               </CardContent>
             </Card>
 
-            {/* Card 3: Data Ownership Score */}
             <Card className="border-border bg-card">
               <CardContent className="p-5 flex flex-col h-full justify-between">
                 <div>
@@ -153,7 +155,6 @@ export default function DashboardPage() { // Renamed to DashboardPage
               </CardContent>
             </Card>
 
-            {/* Card 4: Total Record Blocks */}
             <Card className="border-border bg-card">
               <CardContent className="p-5 flex flex-col h-full justify-between">
                 <div>
@@ -176,7 +177,6 @@ export default function DashboardPage() { // Renamed to DashboardPage
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Recent Medical Records */}
             <Card className="lg:col-span-2 border-border bg-card">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <div>
@@ -213,7 +213,6 @@ export default function DashboardPage() { // Renamed to DashboardPage
               </CardContent>
             </Card>
 
-            {/* Upcoming Appointments */}
             <Card className="border-border bg-card">
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg text-foreground">Upcoming Appointments</CardTitle>
@@ -251,7 +250,6 @@ export default function DashboardPage() { // Renamed to DashboardPage
             </Card>
           </div>
 
-          {/* Data Ownership Banner */}
           <Card className="mt-6 bg-primary/5 border-primary/20">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">

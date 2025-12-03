@@ -1,16 +1,16 @@
 "use client"
 
-import { Home, FileText, Wallet, ShieldCheck, UserPlus, BookOpen, Settings, Activity } from "lucide-react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Home, FileText, Wallet, ShieldCheck, BookOpen, Settings } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
-import Link from "next/link" // <--- Important Import
+import Link from "next/link"
+import { usePrivy } from "@privy-io/react-auth"
+import { useUser } from "@/context/user-context" // <--- Import Context
 
-// <CHANGE> Added URLs to the navigation items
 const navItems = [
   { icon: Home, label: "Home", url: "/" },
-  { icon: FileText, label: "Medical Record", url: "/medical-record" }, // Links to your new page
+  { icon: FileText, label: "Medical Record", url: "/medical-record" },
   { icon: Wallet, label: "DID Wallet", url: "/did-wallet" },
   { icon: ShieldCheck, label: "Data Consent", url: "/data-consent" },
   { icon: BookOpen, label: "Docs", url: "/docs" },
@@ -19,12 +19,20 @@ const navItems = [
 
 interface VitalisSidebarProps {
   activeItem?: string
+  onNavigate?: (item: string) => void
 }
 
 export function VitalisSidebar({ activeItem = "Home" }: VitalisSidebarProps) {
+  const { user } = usePrivy()
+  const { userData } = useUser() // <--- Get live data from context!
+
+  const walletAddress = user?.wallet?.address
+  const formattedAddress = walletAddress 
+    ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-5)}`
+    : "Connecting..."
+
   return (
     <aside className="fixed left-0 top-0 z-40 h-screen w-64 border-r border-border bg-sidebar flex flex-col">
-      {/* Logo */}
       <div className="flex items-center gap-2 px-6 py-5">
          <Image 
           src="/vitalis logo.png"   
@@ -38,45 +46,45 @@ export function VitalisSidebar({ activeItem = "Home" }: VitalisSidebarProps) {
 
       <Separator className="bg-sidebar-border" />
 
-      {/* Patient Overview */}
       <div className="px-4 py-5">
-        {/* Updated Card Container with light blue style */}
         <div className="rounded-xl bg-blue-50 border border-blue-100 p-4">
           
-          {/* Header: Name, Email, and Shield Icon */}
           <div className="flex items-start justify-between">
-            <div>
-              <h3 className="font-semibold text-lg text-foreground">Wesley Taruna</h3>
-              <p className="text-sm text-muted-foreground">wesleytaruna@gmail.com</p>
+            <div className="overflow-hidden"> {/* Added overflow hidden container */}
+              <h3 className="font-semibold text-lg text-foreground truncate block" title={`${userData.firstName} ${userData.lastName}`}>
+                {userData.firstName} {userData.lastName}
+              </h3>
+              <p className="text-xs text-muted-foreground truncate block" title={userData.email}>
+                {userData.email}
+              </p>
             </div>
-            {/* <Shield className="h-5 w-5 text-blue-600 mt-1" /> */}
           </div>
 
-          {/* Body: Blood Type and DOB */}
           <div className="mt-6 space-y-3">
             <div className="flex justify-between items-center text-sm">
               <span className="text-muted-foreground">Blood Type:</span>
-              <span className="font-medium text-foreground">O+</span>
+              <span className="font-medium text-foreground">{userData.bloodType}</span>
             </div>
             <div className="flex justify-between items-center text-sm">
               <span className="text-muted-foreground">DOB:</span>
-              <span className="font-medium text-foreground">2005-10-13</span>
+              <span className="font-medium text-foreground">{userData.dob}</span>
             </div>
           </div>
 
-          {/* Footer: Separator and ID */}
           <Separator className="my-4 bg-blue-200" />
           <div className="flex items-center gap-2 text-sm">
             <span className="text-muted-foreground font-medium">ID:</span>
-            <span className="text-blue-600 font-mono truncate" title="0x1a2b3c4d5e...">
-              0xda61...626da
+            <span 
+              className="text-blue-600 font-mono truncate cursor-help" 
+              title={walletAddress || "No wallet connected"}
+            >
+              {formattedAddress}
             </span>
           </div>
 
         </div>
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 px-3 py-2">
         <ul className="space-y-1">
           {navItems.map((item) => {
@@ -86,19 +94,11 @@ export function VitalisSidebar({ activeItem = "Home" }: VitalisSidebarProps) {
                 <Link
                   href={item.url}
                   className={cn(
-                    // Base classes
                     "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium",
-                    // <CHANGE> Made transition slightly longer and smoother (300ms ease-out)
                     "transition-all duration-300 ease-out",
-                    // The slide effect
                     "hover:translate-x-1",
                     isActive
-                      // Active State: Solid primary background with a subtle shadow boost
                       ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-                      // <CHANGE> Inactive Hover State: The "Glow" Effect
-                      // 1. hover:text-primary -> lights up the text color
-                      // 2. hover:bg-primary/10 -> adds a very faint primary colored background light
-                      // 3. hover:ring-2 hover:ring-primary/20 -> adds a soft, transparent glowing border ring
                       : "text-muted-foreground hover:text-primary hover:bg-primary/10 hover:ring-1 hover:ring-primary/30"
                   )}
                 >
@@ -111,11 +111,12 @@ export function VitalisSidebar({ activeItem = "Home" }: VitalisSidebarProps) {
         </ul>
       </nav>
 
-      {/* Footer */}
       <div className="px-4 py-4">
         <div className="flex items-center gap-2 rounded-lg bg-primary/10 px-3 py-2">
-          <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-          <span className="text-xs font-medium text-primary">Blockchain Connected</span>
+          <div className={`h-2 w-2 rounded-full ${walletAddress ? 'bg-primary animate-pulse' : 'bg-red-400'}`} />
+          <span className="text-xs font-medium text-primary">
+            {walletAddress ? 'Blockchain Connected' : 'Wallet Disconnected'}
+          </span>
         </div>
       </div>
     </aside>
