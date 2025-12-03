@@ -7,31 +7,45 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ShieldCheck, Wallet } from "lucide-react"
 import Image from "next/image"
+import { supabase } from "@/lib/supabase" // Ensure this path matches your file structure
 
 export default function LandingPage() {
-  const { login, ready, authenticated } = usePrivy()
+  const { login, ready, authenticated, user } = usePrivy()
   const router = useRouter()
 
   useEffect(() => {
-    if (ready && authenticated) {
-      // Set the session flag so user stays logged in on refresh
-      sessionStorage.setItem("vitalis_session_active", "true")
-      
-      // Check if user has finished onboarding
-      const isOnboarded = localStorage.getItem("vitalis_onboarding_complete")
-      
-      if (isOnboarded === "true") {
-        router.push("/dashboard")
-      } else {
-        router.push("/onboarding")
+    const checkUserStatus = async () => {
+      if (ready && authenticated && user?.wallet?.address) {
+        sessionStorage.setItem("vitalis_session_active", "true")
+        
+        try {
+          // Check if user exists in Supabase
+          const { data, error } = await supabase
+            .from('users')
+            .select('onboarding_complete')
+            .eq('wallet_address', user.wallet.address)
+            .single()
+
+          // If user exists and onboarding is true, go to dashboard
+          if (data && data.onboarding_complete) {
+            router.push("/dashboard")
+          } else {
+            // Otherwise, go to onboarding
+            router.push("/onboarding")
+          }
+        } catch (err) {
+          // If error (e.g., user not found), assume new user
+          router.push("/onboarding")
+        }
       }
     }
-  }, [ready, authenticated, router])
+
+    checkUserStatus()
+  }, [ready, authenticated, user, router])
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-background p-6">
       <div className="w-full max-w-lg space-y-8">
-        
         <div className="flex flex-col items-center text-center space-y-4">
           <div className="relative h-24 w-24 overflow-hidden rounded-2xl shadow-xl">
              <Image 
@@ -52,7 +66,6 @@ export default function LandingPage() {
 
         <Card className="border-border bg-card/50 backdrop-blur-sm shadow-lg">
           <CardContent className="pt-6 pb-6 flex flex-col gap-4">
-            
             <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/10 text-primary mb-2">
               <ShieldCheck className="h-5 w-5" />
               <span className="text-sm font-medium">HIPAA Compliant & Encrypted</span>
@@ -79,7 +92,6 @@ export default function LandingPage() {
             </p>
           </CardContent>
         </Card>
-
       </div>
     </main>
   )

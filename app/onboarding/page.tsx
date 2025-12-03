@@ -11,14 +11,15 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { User, HeartPulse, ArrowRight, CheckCircle2 } from "lucide-react"
+import { supabase } from "@/lib/supabase" // Check import
 
 export default function OnboardingPage() {
-  const { ready, authenticated } = usePrivy()
+  const { ready, authenticated, user } = usePrivy()
   const { updateUserData } = useUser()
   const router = useRouter()
   const [step, setStep] = useState(1)
+  const [isLoading, setIsLoading] = useState(false)
   
-  // Local form state
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -52,23 +53,60 @@ export default function OnboardingPage() {
     setStep(step + 1)
   }
 
-  const handleSubmit = () => {
-    // 1. Update Global Context with ALL fields
-    updateUserData({
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      email: formData.email,
-      dob: formData.dob,
-      bloodType: formData.bloodType,
-      address: formData.address,
-      emergencyContact: formData.emergencyContact
-    })
-
-    // 2. Mark onboarding as complete
-    localStorage.setItem("vitalis_onboarding_complete", "true")
+  const handleSubmit = async () => {
+    // Safety check
+    if (!user?.wallet?.address) {
+      console.error("No wallet connected");
+      return;
+    }
     
-    // 3. Redirect
-    router.push("/dashboard")
+    setIsLoading(true)
+
+    try {
+      // 1. Update Context
+      updateUserData({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        dob: formData.dob,
+        bloodType: formData.bloodType,
+        address: formData.address,
+        emergencyContact: formData.emergencyContact,
+        allergies: formData.allergies || "None",
+        medications: formData.medications || "None",
+        conditions: formData.conditions || "None"
+      })
+
+      // 2. Save to Supabase
+      const { error } = await supabase
+        .from('users')
+        .upsert({
+          wallet_address: user.wallet.address,
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          email: formData.email,
+          dob: formData.dob,
+          address: formData.address,
+          emergency_contact: formData.emergencyContact,
+          blood_type: formData.bloodType,
+          allergies: formData.allergies,
+          medications: formData.medications,
+          conditions: formData.conditions,
+          onboarding_complete: true
+        })
+
+      if (error) {
+        console.error("Supabase Error:", error)
+        alert(`Error saving data: ${error.message}`)
+      } else {
+        router.push("/dashboard")
+      }
+
+    } catch (error) {
+      console.error("Unexpected error:", error)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   if (!ready || !authenticated) return null
@@ -173,7 +211,7 @@ export default function OnboardingPage() {
 
         <CardFooter className="flex justify-between">
           {step === 2 && (
-            <Button variant="outline" onClick={() => setStep(1)}>
+            <Button variant="outline" onClick={() => setStep(1)} disabled={isLoading}>
               Back
             </Button>
           )}
@@ -183,8 +221,9 @@ export default function OnboardingPage() {
                 Next Step <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             ) : (
-              <Button onClick={handleSubmit} className="bg-emerald-600 hover:bg-emerald-700 text-white">
-                Complete Setup <CheckCircle2 className="ml-2 h-4 w-4" />
+              <Button onClick={handleSubmit} className="bg-emerald-600 hover:bg-emerald-700 text-white" disabled={isLoading}>
+                {isLoading ? "Saving..." : "Complete Setup"}
+                {!isLoading && <CheckCircle2 className="ml-2 h-4 w-4" />}
               </Button>
             )}
           </div>
