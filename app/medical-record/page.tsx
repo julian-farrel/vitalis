@@ -9,13 +9,16 @@ import {
   Loader2,
   CheckCircle2,
   File,
-  ExternalLink
+  ExternalLink,
+  Pill,
+  Activity,
+  Search
 } from "lucide-react"
 import { VitalisSidebar } from "@/components/vitalis-sidebar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -91,6 +94,11 @@ export default function MedicalRecordsPage() {
       return
     }
 
+    if (!userData.didWalletAddress || userData.didWalletAddress === "Not Created") {
+       toast({ title: "Profile Error", description: "DID Wallet not found. Please complete onboarding.", variant: "destructive" })
+       return
+    }
+
     setIsUploading(true)
     
     try {
@@ -100,19 +108,24 @@ export default function MedicalRecordsPage() {
 
       // 2. Upload to Supabase Storage
       setUploadStep("uploading")
-      const fileName = `${userData.didWalletAddress}/${Date.now()}-${file.name}`
+      // Sanitize filename
+      const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_')
+      const fileName = `${userData.didWalletAddress}/${Date.now()}_${cleanFileName}`
+      
       const { error: uploadError } = await supabase.storage
         .from('medical-records')
         .upload(fileName, file)
 
-      if (uploadError) throw new Error("Storage failed: " + uploadError.message)
+      if (uploadError) throw new Error("Storage upload failed: " + uploadError.message)
 
       // 3. Blockchain Transaction
       setUploadStep("minting")
       const metadata = JSON.stringify({ name: docName, type: docType, date: docDate })
+      
+      // Note: This requires the user to sign a transaction in their wallet
       await addRecordToBlockchain(fileHash, metadata)
 
-      // 4. Save to Database
+      // 4. Save Metadata to Database
       const newRecord = {
         user_wallet: userData.didWalletAddress,
         title: docName,
@@ -129,12 +142,12 @@ export default function MedicalRecordsPage() {
         .select()
         .single()
       
-      if (dbError) throw dbError
+      if (dbError) throw new Error("Database save failed: " + dbError.message)
 
       // 5. Update UI
       if (insertedData) setLocalRecords(prev => [insertedData, ...prev])
       setUploadStep("success")
-      toast({ title: "Success", description: "Record secured on blockchain." })
+      toast({ title: "Success", description: "Record secured on blockchain and stored." })
 
       setTimeout(() => {
         setIsUploadOpen(false)
@@ -143,7 +156,11 @@ export default function MedicalRecordsPage() {
 
     } catch (error: any) {
       console.error(error)
-      toast({ title: "Error", description: error.message, variant: "destructive" })
+      // Friendly error message for common blockchain issues
+      let msg = error.message
+      if (msg.includes("User rejected")) msg = "Transaction rejected by user."
+      
+      toast({ title: "Error", description: msg, variant: "destructive" })
       setUploadStep("idle")
     } finally {
       setIsUploading(false)
@@ -296,6 +313,53 @@ export default function MedicalRecordsPage() {
             </Dialog>
           </div>
 
+          {/* New Patient Medical Profile Section */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2">
+            <Card className="bg-red-50/50 border-red-100 dark:bg-red-950/10 dark:border-red-900/30">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-red-600 flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4" /> Allergies
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm font-medium">{userData.allergies || "None Reported"}</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-blue-50/50 border-blue-100 dark:bg-blue-950/10 dark:border-blue-900/30">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-blue-600 flex items-center gap-2">
+                  <Pill className="h-4 w-4" /> Current Medications
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm font-medium">{userData.medications || "None Reported"}</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-amber-50/50 border-amber-100 dark:bg-amber-950/10 dark:border-amber-900/30">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-amber-600 flex items-center gap-2">
+                  <Activity className="h-4 w-4" /> Chronic Conditions
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm font-medium">{userData.conditions || "None Reported"}</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search by doctor, diagnosis, or date..."
+                className="pl-9 bg-card"
+              />
+            </div>
+          </div>
+
           <Tabs defaultValue="all" className="w-full">
             <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5 h-auto p-1 bg-muted/50 mb-6">
               <TabsTrigger value="all" className="py-2">All Records</TabsTrigger>
@@ -356,7 +420,6 @@ export default function MedicalRecordsPage() {
               ) : <EmptyState />}
             </TabsContent>
             
-            {/* Same logic for other tabs */}
             <TabsContent value="lab" className="mt-0"><EmptyState /></TabsContent>
             <TabsContent value="medication" className="mt-0"><EmptyState /></TabsContent>
             <TabsContent value="procedure" className="mt-0"><EmptyState /></TabsContent>

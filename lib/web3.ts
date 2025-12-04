@@ -1,11 +1,9 @@
-// lib/web3.ts
-
 import { createWalletClient, custom, publicActions } from 'viem'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { sepolia } from 'viem/chains'
 
-// Your Deployed Contract Address
-export const VITALIS_CONTRACT_ADDRESS = "0xfbc6e41c9F21d5F718195C5A4F79B903155A2c67" 
+// *** IMPORTANT: REPLACE THIS WITH YOUR NEW DEPLOYED CONTRACT ADDRESS ***
+export const VITALIS_CONTRACT_ADDRESS = "0x4f6194E931b71F26fFae366470D56Ee3C40dD134" 
 
 export const VITALIS_ABI = [
   {
@@ -22,7 +20,6 @@ export const VITALIS_ABI = [
     "stateMutability": "view",
     "type": "function"
   },
-  // <--- Added: Function to store record hash
   {
     "inputs": [
       { "internalType": "string", "name": "_recordHash", "type": "string" },
@@ -35,32 +32,19 @@ export const VITALIS_ABI = [
   }
 ] as const
 
-// 1. Helper to generate a new random wallet (Health DID)
 export const generateHealthWallet = () => {
   const privateKey = generatePrivateKey()
   const account = privateKeyToAccount(privateKey)
-  
-  return {
-    address: account.address,
-    privateKey: privateKey
-  }
+  return { address: account.address, privateKey: privateKey }
 }
 
-// 2. Function to interact with the Smart Contract: Register DID
 export const registerDIDOnChain = async (didAddress: string) => {
   if (typeof window === 'undefined' || !window.ethereum) return;
-
   try {
     const client = createWalletClient({
       chain: sepolia, 
       transport: custom(window.ethereum)
     }).extend(publicActions)
-
-    try {
-      await client.switchChain({ id: sepolia.id })
-    } catch (e) {
-      console.warn("Failed to switch chain:", e)
-    }
 
     const [account] = await client.requestAddresses()
 
@@ -71,7 +55,6 @@ export const registerDIDOnChain = async (didAddress: string) => {
       functionName: 'registerPatient',
       args: [didAddress as `0x${string}`]
     })
-
     return hash
   } catch (error) {
     console.error("Smart Contract Error:", error)
@@ -79,7 +62,6 @@ export const registerDIDOnChain = async (didAddress: string) => {
   }
 }
 
-// 3. <--- Added: Function to store Medical Record Hash on Blockchain
 export const addRecordToBlockchain = async (recordHash: string, metadata: string) => {
   if (typeof window === 'undefined' || !window.ethereum) throw new Error("No Wallet Found");
 
@@ -90,6 +72,31 @@ export const addRecordToBlockchain = async (recordHash: string, metadata: string
 
   const [account] = await client.requestAddresses()
 
+  // 1. Check registration first to avoid RPC Error
+  const myDID = await client.readContract({
+      address: VITALIS_CONTRACT_ADDRESS as `0x${string}`,
+      abi: VITALIS_ABI,
+      functionName: 'getMyDID',
+      account: account
+  }) as string
+
+  // If user is NOT registered (address is 0x0...), register them first
+  if (!myDID || myDID === "0x0000000000000000000000000000000000000000") {
+      console.log("User not registered. Auto-registering now...")
+      // We register the user's OWN wallet as their DID for simplicity in this flow
+      const regHash = await client.writeContract({
+          account,
+          address: VITALIS_CONTRACT_ADDRESS as `0x${string}`,
+          abi: VITALIS_ABI,
+          functionName: 'registerPatient',
+          args: [account]
+      })
+      // Wait for registration transaction to complete
+      await client.waitForTransactionReceipt({ hash: regHash })
+      console.log("Registration complete. Proceeding to add record...")
+  }
+
+  // 2. Now add the record
   const hash = await client.writeContract({
     account,
     address: VITALIS_CONTRACT_ADDRESS as `0x${string}`,
