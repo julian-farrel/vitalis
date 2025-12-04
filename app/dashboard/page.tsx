@@ -10,14 +10,17 @@ import {
   ShieldCheck, 
   Database,
   Inbox,
-  Calendar, // <--- Added
-  Shield    // <--- Added
+  Calendar,
+  Shield,
+  Activity,
+  ArrowUpRight,
+  Plus
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { useUser } from "@/context/user-context"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar" // Added Avatar imports just in case, as they were used in the previous version
+import { Button } from "@/components/ui/button"
 
 export default function DashboardPage() {
   const [activeNav, setActiveNav] = useState("Home")
@@ -40,165 +43,197 @@ export default function DashboardPage() {
   }
 
   return (
-    <main className="min-h-dvh bg-background">
+    <div className="min-h-screen bg-background font-sans selection:bg-primary/20">
+      
+      {/* Sidebar Navigation */}
       <VitalisSidebar activeItem={activeNav} />
 
-      <section className="pl-64">
-        <div className="p-8">
-          <div className="mb-8">
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Welcome back, {userData.firstName}</h1>
-            <p className="text-muted-foreground mt-1">Your health data is secure and owned by you on the blockchain.</p>
+      <main className="pl-64 relative">
+        {/* Ambient Background Glow */}
+        <div className="absolute top-0 left-0 w-full h-[500px] bg-primary/5 blur-[100px] rounded-full pointer-events-none -z-10" />
+
+        <div className="p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          
+          {/* Header Section */}
+          <div className="flex items-end justify-between">
+            <div>
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-1">Overview</h2>
+              <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-foreground to-foreground/60">
+                Welcome back, {userData.firstName}
+              </h1>
+            </div>
+            <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground bg-secondary/50 px-4 py-2 rounded-full border border-border/50">
+              <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              Network Status: Online
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <Card className="border-border bg-card">
-              <CardContent className="p-5 flex flex-col h-full justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="p-2 rounded-lg bg-blue-500/10">
-                      <Users className="h-5 w-5 text-blue-600" />
-                    </div>
-                    <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50">
-                      Active
-                    </Badge>
+          {/* KPI Cards Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+            
+            {/* Card 1: Active Providers */}
+            <Card className="group relative overflow-hidden border-border/60 bg-card/50 backdrop-blur-sm hover:bg-card/80 transition-all hover:shadow-lg hover:-translate-y-1">
+              <CardContent className="p-6">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="p-3 rounded-2xl bg-blue-500/10 text-blue-600 group-hover:scale-110 transition-transform duration-300">
+                    <Users className="h-6 w-6" />
                   </div>
-                  <p className="text-2xl font-bold text-foreground">0 Providers</p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Currently accessing your data
-                  </p>
+                  <Badge variant="outline" className="border-blue-200 text-blue-700 bg-blue-50/50">
+                    Active
+                  </Badge>
+                </div>
+                <div>
+                  <p className="text-3xl font-bold text-foreground">0</p>
+                  <p className="text-sm font-medium text-muted-foreground mt-1">Authorized Providers</p>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-border bg-card">
-              <CardContent className="p-5 flex flex-col h-full justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="p-2 rounded-lg bg-orange-500/10">
-                      <Bell className="h-5 w-5 text-orange-600" />
-                    </div>
-                    <Badge variant="secondary" className="bg-orange-100 text-orange-700">
-                      0 New
-                    </Badge>
+            {/* Card 2: Pending Requests */}
+            <Card className="group relative overflow-hidden border-border/60 bg-card/50 backdrop-blur-sm hover:bg-card/80 transition-all hover:shadow-lg hover:-translate-y-1">
+              <CardContent className="p-6">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="p-3 rounded-2xl bg-orange-500/10 text-orange-600 group-hover:scale-110 transition-transform duration-300">
+                    <Bell className="h-6 w-6" />
                   </div>
-                  <p className="font-semibold text-foreground truncate">No Requests</p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Pending read access
-                  </p>
+                  <Badge variant="secondary" className="bg-orange-100/50 text-orange-700 hover:bg-orange-100">
+                    0 New
+                  </Badge>
+                </div>
+                <div>
+                  <p className="text-3xl font-bold text-foreground">0</p>
+                  <p className="text-sm font-medium text-muted-foreground mt-1">Pending Requests</p>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-border bg-card">
-              <CardContent className="p-5 flex flex-col h-full justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="p-2 rounded-lg bg-emerald-500/10">
-                      <ShieldCheck className="h-5 w-5 text-emerald-600" />
-                    </div>
-                    <span className="text-xl font-bold text-emerald-600">100%</span>
+            {/* Card 3: Data Control */}
+            <Card className="group relative overflow-hidden border-border/60 bg-card/50 backdrop-blur-sm hover:bg-card/80 transition-all hover:shadow-lg hover:-translate-y-1">
+              <CardContent className="p-6">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-600 group-hover:scale-110 transition-transform duration-300">
+                    <ShieldCheck className="h-6 w-6" />
                   </div>
-                  <p className="font-semibold text-foreground">Data Control</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Patient-owned status
-                  </p>
+                  <span className="text-lg font-bold text-emerald-600">100%</span>
                 </div>
-                <div className="mt-4">
-                  <Progress value={100} className="h-2 bg-emerald-100 [&>div]:bg-emerald-500" />
+                <div>
+                  <p className="text-sm font-medium text-foreground mb-2">Data Ownership</p>
+                  <Progress value={100} className="h-1.5 bg-emerald-100 [&>div]:bg-emerald-500" />
+                  <p className="text-xs text-muted-foreground mt-2">Fully patient-controlled</p>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-border bg-card">
-              <CardContent className="p-5 flex flex-col h-full justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="p-2 rounded-lg bg-purple-500/10">
-                      <Database className="h-5 w-5 text-purple-600" />
-                    </div>
-                    <div className="flex items-center text-xs text-muted-foreground">
-                      <div className="h-2 w-2 rounded-full bg-green-500 mr-2 animate-pulse" />
-                      Synced
-                    </div>
+            {/* Card 4: Blockchain Sync */}
+            <Card className="group relative overflow-hidden border-border/60 bg-card/50 backdrop-blur-sm hover:bg-card/80 transition-all hover:shadow-lg hover:-translate-y-1">
+              <CardContent className="p-6">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="p-3 rounded-2xl bg-purple-500/10 text-purple-600 group-hover:scale-110 transition-transform duration-300">
+                    <Database className="h-6 w-6" />
                   </div>
-                  <p className="text-2xl font-bold text-foreground">0 Blocks</p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Secured medical history
-                  </p>
+                  <div className="flex items-center text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-secondary px-2 py-1 rounded">
+                    Synced
+                  </div>
+                </div>
+                <div>
+                  <p className="text-3xl font-bold text-foreground">0</p>
+                  <p className="text-sm font-medium text-muted-foreground mt-1">Blocks Secured</p>
                 </div>
               </CardContent>
             </Card>
           </div>
 
+          {/* Main Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Card className="lg:col-span-2 border-border bg-card">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <div>
-                  <CardTitle className="text-lg text-foreground">Recent Medical Records</CardTitle>
-                  <CardDescription>Your latest verified health documents</CardDescription>
+            
+            {/* Recent Medical Records */}
+            <Card className="lg:col-span-2 border-border/60 bg-card/40 backdrop-blur-md shadow-sm h-full flex flex-col">
+              <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-border/40">
+                <div className="space-y-1">
+                  <CardTitle className="text-lg font-bold">Recent Records</CardTitle>
+                  <CardDescription>Latest updates to your medical history</CardDescription>
                 </div>
+                <Button variant="ghost" size="sm" className="text-primary hover:text-primary hover:bg-primary/10 gap-1">
+                  View All <ArrowUpRight className="h-4 w-4" />
+                </Button>
               </CardHeader>
-              <CardContent>
+              <CardContent className="flex-1 p-6">
                 {recentRecords.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-10 text-center text-muted-foreground">
-                    <Inbox className="h-10 w-10 mb-2 opacity-50" />
-                    <p>No medical records found.</p>
+                  <div className="h-full flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-muted-foreground/10 rounded-xl bg-muted/5">
+                    <div className="h-16 w-16 bg-muted/20 rounded-full flex items-center justify-center mb-4">
+                      <Inbox className="h-8 w-8 text-muted-foreground/50" />
+                    </div>
+                    <h3 className="font-semibold text-foreground">No records found</h3>
+                    <p className="text-sm text-muted-foreground max-w-xs mt-1">
+                      Medical records added by your doctors will appear here securely.
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {/* Map recentRecords here when data exists */}
+                    {/* Record list items would map here */}
                   </div>
                 )}
               </CardContent>
             </Card>
 
-            <Card className="border-border bg-card">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg text-foreground">Upcoming Appointments</CardTitle>
-                <CardDescription>Your scheduled visits</CardDescription>
+            {/* Upcoming Appointments */}
+            <Card className="border-border/60 bg-card/40 backdrop-blur-md shadow-sm h-full flex flex-col">
+              <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-border/40">
+                <div className="space-y-1">
+                  <CardTitle className="text-lg font-bold">Appointments</CardTitle>
+                  <CardDescription>Upcoming schedule</CardDescription>
+                </div>
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
+                  <Plus className="h-4 w-4" />
+                </Button>
               </CardHeader>
-              <CardContent>
+              <CardContent className="flex-1 p-6">
                 {upcomingAppointments.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-10 text-center text-muted-foreground">
-                    <Calendar className="h-10 w-10 mb-2 opacity-50" />
-                    <p>No upcoming appointments.</p>
+                  <div className="h-full flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-muted-foreground/10 rounded-xl bg-muted/5">
+                    <div className="h-16 w-16 bg-muted/20 rounded-full flex items-center justify-center mb-4">
+                      <Calendar className="h-8 w-8 text-muted-foreground/50" />
+                    </div>
+                    <h3 className="font-semibold text-foreground">No appointments</h3>
+                    <p className="text-sm text-muted-foreground max-w-[200px] mt-1">
+                      You have no upcoming visits scheduled.
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {/* Map upcomingAppointments here when data exists */}
+                    {/* Appointment items would map here */}
                   </div>
                 )}
               </CardContent>
             </Card>
           </div>
 
-          <Card className="mt-6 bg-primary/5 border-primary/20">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-full bg-primary/20">
-                    <Shield className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-lg text-foreground">Your Data, Your Control</h3>
-                    <p className="text-sm text-muted-foreground">
-                      All medical records are encrypted and stored on-chain. Only you decide who can access your health
-                      data.
-                    </p>
-                  </div>
+          {/* Privacy Banner */}
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/10 p-1">
+            <div className="bg-card/40 backdrop-blur-sm rounded-xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex items-start gap-5">
+                <div className="p-3.5 rounded-full bg-gradient-to-br from-primary to-blue-600 text-primary-foreground shadow-lg shadow-primary/20 mt-1">
+                  <Shield className="h-6 w-6" />
                 </div>
-                <div className="hidden sm:block">
-                  <div className="text-right mb-1">
-                    <span className="text-sm font-medium text-foreground">Data Ownership</span>
-                  </div>
-                  <Progress value={100} className="w-32 h-2" />
-                  <p className="text-xs text-muted-foreground mt-1">100% patient-owned</p>
+                <div className="space-y-2">
+                  <h3 className="font-bold text-xl text-foreground">Your Data is Encrypted</h3>
+                  <p className="text-muted-foreground max-w-xl leading-relaxed">
+                    Vitalis uses advanced Zero-Knowledge Proofs to ensure your medical records remain private. 
+                    Only you hold the keys to decrypt and share your information.
+                  </p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+              <div className="hidden lg:block min-w-[200px]">
+                <div className="flex justify-between text-sm mb-2 font-medium">
+                  <span>Security Level</span>
+                  <span className="text-primary">Maximum</span>
+                </div>
+                <Progress value={100} className="h-2.5 bg-primary/20 [&>div]:bg-primary" />
+              </div>
+            </div>
+          </div>
+
         </div>
-      </section>
-    </main>
+      </main>
+    </div>
   )
 }
