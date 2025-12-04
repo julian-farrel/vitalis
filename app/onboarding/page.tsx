@@ -11,8 +11,19 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { User, HeartPulse, ArrowRight, CheckCircle2, Loader2 } from "lucide-react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { supabase } from "@/lib/supabase"
-import { generateHealthWallet, registerDIDOnChain } from "@/lib/web3" // <--- Imported Web3 Helpers
+import { generateHealthWallet, registerDIDOnChain, VITALIS_CONTRACT_ADDRESS, VITALIS_ABI } from "@/lib/web3"
+import { createPublicClient, http } from 'viem'
+import { sepolia } from 'viem/chains'
 
 export default function OnboardingPage() {
   const { ready, authenticated, user } = usePrivy()
@@ -22,6 +33,10 @@ export default function OnboardingPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [statusText, setStatusText] = useState("Complete Setup")
   
+  // Success Popup State
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false)
+  const [createdDID, setCreatedDID] = useState("")
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -59,18 +74,45 @@ export default function OnboardingPage() {
     if (!user?.wallet?.address) return;
     
     setIsLoading(true)
-    setStatusText("Generating Identity...")
+    setStatusText("Verifying Identity...")
 
     try {
-      // 1. Generate Health DID
-      const healthWallet = generateHealthWallet()
-      const didAddress = healthWallet.address
-      console.log("New DID:", didAddress)
+      let didAddress = ""
 
-      // 2. Register on Blockchain (Infura/Sepolia)
-      setStatusText("Waiting for Signature...")
-      const txHash = await registerDIDOnChain(didAddress)
-      console.log("Transaction Hash:", txHash)
+      // 1. Check if user is ALREADY registered on-chain
+      const publicClient = createPublicClient({ 
+        chain: sepolia, 
+        transport: http() 
+      })
+
+      try {
+        const existingDID = await publicClient.readContract({
+          address: VITALIS_CONTRACT_ADDRESS as `0x${string}`,
+          abi: VITALIS_ABI,
+          functionName: 'getMyDID',
+          account: user.wallet.address as `0x${string}`
+        }) as string
+        
+        if (existingDID && existingDID !== "0x0000000000000000000000000000000000000000") {
+          console.log("User already registered on-chain. DID:", existingDID)
+          didAddress = existingDID
+          setStatusText("Syncing Profile...")
+        }
+      } catch (err) {
+        console.log("User not registered on-chain yet.")
+      }
+
+      // 2. If NO existing DID found, Register a new one on Blockchain
+      if (!didAddress) {
+        setStatusText("Generating Identity...")
+        const healthWallet = generateHealthWallet()
+        didAddress = healthWallet.address
+        console.log("New DID generated:", didAddress)
+        
+        setStatusText("Waiting for Signature...")
+        const txHash = await registerDIDOnChain(didAddress)
+        console.log("Transaction confirmed:", txHash)
+      }
 
       setStatusText("Saving Profile...")
 
@@ -86,7 +128,7 @@ export default function OnboardingPage() {
         allergies: formData.allergies || "None",
         medications: formData.medications || "None",
         conditions: formData.conditions || "None",
-        didWalletAddress: didAddress // <--- Save to Context
+        didWalletAddress: didAddress 
       })
 
       // 4. Save to Supabase
@@ -104,17 +146,23 @@ export default function OnboardingPage() {
           allergies: formData.allergies,
           medications: formData.medications,
           conditions: formData.conditions,
-          did_wallet_address: didAddress, // <--- Save to DB
+          did_wallet_address: didAddress, 
           onboarding_complete: true
         })
 
       if (error) throw error
       
-      router.push("/dashboard")
+      // 5. Show Success Dialog
+      setCreatedDID(didAddress)
+      setShowSuccessDialog(true)
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Onboarding Error:", error)
-      alert("Failed to complete setup. Check console for details.")
+      if (error.message && (error.message.includes("Internal JSON-RPC error") || error.message.includes("execution reverted"))) {
+        alert("Blockchain Error: The transaction failed. Please check if you have enough Sepolia ETH or if the network is busy.")
+      } else {
+        alert("Failed to complete setup. Please check console for details.")
+      }
     } finally {
       setIsLoading(false)
       setStatusText("Complete Setup")
@@ -248,6 +296,37 @@ export default function OnboardingPage() {
           </div>
         </CardFooter>
       </Card>
+
+      {/* FIXED Success Dialog */}
+      <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <AlertDialogContent className="bg-card text-card-foreground border-border">
+          <AlertDialogHeader>
+            <div className="mx-auto w-12 h-12 bg-emerald-100/50 rounded-full flex items-center justify-center mb-2">
+              <CheckCircle2 className="h-6 w-6 text-emerald-600" />
+            </div>
+            <AlertDialogTitle className="text-center text-xl text-foreground">Registration Successful!</AlertDialogTitle>
+            <AlertDialogDescription className="text-center text-muted-foreground">
+              Your decentralized identity (DID) has been generated and securely registered on the blockchain.
+            </AlertDialogDescription>
+            
+            <div className="mt-4 p-4 bg-muted/50 rounded-lg border border-border">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Your DID Wallet Address</p>
+              {/* Changed text color to standard foreground for readability */}
+              <code className="text-sm font-mono text-foreground block break-all bg-background p-2 rounded border border-input">
+                {createdDID}
+              </code>
+            </div>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="sm:justify-center">
+            <AlertDialogAction 
+              onClick={() => router.push("/dashboard")}
+              className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              Continue to Dashboard
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
