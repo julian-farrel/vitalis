@@ -1,3 +1,5 @@
+// lib/web3.ts
+
 import { createWalletClient, custom, publicActions } from 'viem'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { sepolia } from 'viem/chains'
@@ -19,6 +21,17 @@ export const VITALIS_ABI = [
     "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
     "stateMutability": "view",
     "type": "function"
+  },
+  // <--- Added: Function to store record hash
+  {
+    "inputs": [
+      { "internalType": "string", "name": "_recordHash", "type": "string" },
+      { "internalType": "string", "name": "_metadata", "type": "string" }
+    ],
+    "name": "addRecord",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
   }
 ] as const
 
@@ -33,30 +46,24 @@ export const generateHealthWallet = () => {
   }
 }
 
-// 2. Function to interact with the Smart Contract
+// 2. Function to interact with the Smart Contract: Register DID
 export const registerDIDOnChain = async (didAddress: string) => {
   if (typeof window === 'undefined' || !window.ethereum) return;
 
   try {
-    // Create the wallet client
     const client = createWalletClient({
       chain: sepolia, 
       transport: custom(window.ethereum)
     }).extend(publicActions)
 
-    // FORCE SWITCH TO SEPOLIA NETWORK
-    // This fixes the issue where the transaction fails simulation on wrong networks
     try {
       await client.switchChain({ id: sepolia.id })
     } catch (e) {
-      console.warn("Failed to switch chain or user rejected request:", e)
-      // We continue anyway; sometimes the user is already on the network but the request fails typically
+      console.warn("Failed to switch chain:", e)
     }
 
-    // Request account access
     const [account] = await client.requestAddresses()
 
-    // Send the transaction
     const hash = await client.writeContract({
       account,
       address: VITALIS_CONTRACT_ADDRESS as `0x${string}`,
@@ -68,6 +75,28 @@ export const registerDIDOnChain = async (didAddress: string) => {
     return hash
   } catch (error) {
     console.error("Smart Contract Error:", error)
-    throw error // Propagate error so the UI shows the alert
+    throw error 
   }
+}
+
+// 3. <--- Added: Function to store Medical Record Hash on Blockchain
+export const addRecordToBlockchain = async (recordHash: string, metadata: string) => {
+  if (typeof window === 'undefined' || !window.ethereum) throw new Error("No Wallet Found");
+
+  const client = createWalletClient({
+    chain: sepolia,
+    transport: custom(window.ethereum)
+  }).extend(publicActions)
+
+  const [account] = await client.requestAddresses()
+
+  const hash = await client.writeContract({
+    account,
+    address: VITALIS_CONTRACT_ADDRESS as `0x${string}`,
+    abi: VITALIS_ABI,
+    functionName: 'addRecord',
+    args: [recordHash, metadata]
+  })
+
+  return hash;
 }

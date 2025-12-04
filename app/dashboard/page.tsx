@@ -12,15 +12,16 @@ import {
   Inbox,
   Calendar,
   Shield,
-  Activity,
-  ArrowUpRight,
-  Plus
+  Plus,
+  FileText,
+  CheckCircle2
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { useUser } from "@/context/user-context"
 import { Button } from "@/components/ui/button"
+import { supabase } from "@/lib/supabase"
 
 export default function DashboardPage() {
   const [activeNav, setActiveNav] = useState("Home")
@@ -28,15 +29,32 @@ export default function DashboardPage() {
   const router = useRouter()
   const { userData } = useUser()
 
-  // Real data state (initially empty)
-  const recentRecords: any[] = [] 
-  const upcomingAppointments: any[] = []
+  // Real data state
+  const [recentRecords, setRecentRecords] = useState<any[]>([])
+  const [upcomingAppointments, setUpcomingAppointments] = useState<any[]>([])
 
   useEffect(() => {
     if (ready && !authenticated) {
       router.push("/")
     }
   }, [ready, authenticated, router])
+
+  // Fetch recent records for the dashboard
+  useEffect(() => {
+    const fetchRecent = async () => {
+      if (!userData.didWalletAddress) return;
+
+      const { data } = await supabase
+        .from('records')
+        .select('*')
+        .eq('user_wallet', userData.didWalletAddress)
+        .order('created_at', { ascending: false })
+        .limit(5)
+
+      if (data) setRecentRecords(data)
+    }
+    fetchRecent()
+  }, [userData.didWalletAddress])
 
   if (!ready || !authenticated) {
     return null
@@ -45,16 +63,13 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-background font-sans selection:bg-primary/20">
       
-      {/* Sidebar Navigation */}
       <VitalisSidebar activeItem={activeNav} />
 
       <main className="pl-64 relative">
-        {/* Ambient Background Glow */}
         <div className="absolute top-0 left-0 w-full h-[500px] bg-primary/5 blur-[100px] rounded-full pointer-events-none -z-10" />
 
         <div className="p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
           
-          {/* Header Section */}
           <div className="flex items-end justify-between">
             <div>
               <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-1">Overview</h2>
@@ -68,10 +83,8 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* KPI Cards Grid */}
+          {/* KPI Cards (Same as before) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-            
-            {/* Card 1: Active Providers */}
             <Card className="group relative overflow-hidden border-border/60 bg-card/50 backdrop-blur-sm hover:bg-card/80 transition-all hover:shadow-lg hover:-translate-y-1">
               <CardContent className="p-6">
                 <div className="flex justify-between items-start mb-4">
@@ -89,7 +102,6 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
-            {/* Card 2: Pending Requests */}
             <Card className="group relative overflow-hidden border-border/60 bg-card/50 backdrop-blur-sm hover:bg-card/80 transition-all hover:shadow-lg hover:-translate-y-1">
               <CardContent className="p-6">
                 <div className="flex justify-between items-start mb-4">
@@ -107,7 +119,6 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
-            {/* Card 3: Data Control */}
             <Card className="group relative overflow-hidden border-border/60 bg-card/50 backdrop-blur-sm hover:bg-card/80 transition-all hover:shadow-lg hover:-translate-y-1">
               <CardContent className="p-6">
                 <div className="flex justify-between items-start mb-4">
@@ -124,7 +135,6 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
-            {/* Card 4: Blockchain Sync */}
             <Card className="group relative overflow-hidden border-border/60 bg-card/50 backdrop-blur-sm hover:bg-card/80 transition-all hover:shadow-lg hover:-translate-y-1">
               <CardContent className="p-6">
                 <div className="flex justify-between items-start mb-4">
@@ -136,7 +146,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <div>
-                  <p className="text-3xl font-bold text-foreground">0</p>
+                  <p className="text-3xl font-bold text-foreground">{recentRecords.length}</p>
                   <p className="text-sm font-medium text-muted-foreground mt-1">Blocks Secured</p>
                 </div>
               </CardContent>
@@ -153,9 +163,9 @@ export default function DashboardPage() {
                   <CardTitle className="text-lg font-bold">Recent Records</CardTitle>
                   <CardDescription>Latest updates to your medical history</CardDescription>
                 </div>
-                {/* <Button variant="ghost" size="sm" className="text-primary hover:text-primary hover:bg-primary/10 gap-1">
-                  View All <ArrowUpRight className="h-4 w-4" />
-                </Button> */}
+                <Button variant="ghost" size="sm" onClick={() => router.push('/medical-record')} className="text-primary hover:text-primary hover:bg-primary/10 gap-1">
+                  View All
+                </Button>
               </CardHeader>
               <CardContent className="flex-1 p-6">
                 {recentRecords.length === 0 ? (
@@ -170,7 +180,25 @@ export default function DashboardPage() {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {/* Record list items would map here */}
+                    {recentRecords.map((record) => (
+                      <div key={record.id} className="flex items-center justify-between p-3 rounded-lg border border-border/50 bg-background/50 hover:bg-background/80 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-600">
+                            <FileText className="h-5 w-5" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-sm">{record.title}</p>
+                            <p className="text-xs text-muted-foreground capitalize">{record.type} • {record.date}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="hidden sm:flex text-[10px] font-mono text-muted-foreground bg-muted px-2 py-1 rounded">
+                            {record.file_hash.slice(0, 6)}...
+                          </span>
+                          <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </CardContent>
@@ -200,7 +228,7 @@ export default function DashboardPage() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {/* Appointment items would map here */}
+                    {/* Appointments map would go here */}
                   </div>
                 )}
               </CardContent>
