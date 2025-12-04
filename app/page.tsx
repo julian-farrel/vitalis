@@ -12,7 +12,6 @@ import {
   Database, 
   ArrowRight,
   CheckCircle2,
-  Globe,
   Zap,
   Activity
 } from "lucide-react"
@@ -90,24 +89,6 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col font-sans">
       
-      {/* Inject Custom CSS for Marquee Animation */}
-      <style jsx global>{`
-        @keyframes marquee {
-          0% { transform: translateX(0%); }
-          100% { transform: translateX(-100%); }
-        }
-        @keyframes marquee2 {
-          0% { transform: translateX(100%); }
-          100% { transform: translateX(0%); }
-        }
-        .animate-marquee {
-          animation: marquee 25s linear infinite;
-        }
-        .animate-marquee2 {
-          animation: marquee2 25s linear infinite;
-        }
-      `}</style>
-
       {/* 1. Navigation Bar */}
       <header className="w-full py-4 px-6 md:px-12 flex items-center justify-between border-b border-border/40 backdrop-blur-md fixed top-0 z-50 bg-background/80">
         <div className="flex items-center gap-2">
@@ -147,12 +128,15 @@ export default function LandingPage() {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center gap-4">
-            <Link href="/docs" passHref>
-              <Button variant="outline" size="lg" className="h-12 px-8 gap-2 text-base">
+            {/* FIXED: Use 'asChild' to properly nest Link inside Button.
+                Also added target="_blank" since you mentioned it's for a file/external link.
+            */}
+            <Button variant="outline" size="lg" className="h-12 px-8 gap-2 text-base" asChild>
+              <Link href="/docs" passHref>
                 <FileText className="h-4 w-4" />
                 Whitepaper
-              </Button>
-            </Link>
+              </Link>
+            </Button>
             
              <Button size="lg" onClick={login} className="h-12 px-8 gap-2 text-base shadow-lg shadow-primary/20">
                 Get Started <ArrowRight className="h-4 w-4" />

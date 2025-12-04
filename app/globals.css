@@ -5,57 +5,32 @@
 
 /* <CHANGE> Updated to White & Baby Blue Theme */
 :root {
-  /* Main Background: Pure White */
+  /* ... (Keep your existing variables) ... */
   --background: #ffffff;
-  /* Main Text: Dark Slate (for readability on white) */
   --foreground: #0f172a;
-
-  /* Cards: White with subtle borders */
   --card: #ffffff;
   --card-foreground: #0f172a;
-
-  /* Popovers: White */
   --popover: #ffffff;
   --popover-foreground: #0f172a;
-
-  /* Primary: Baby Blue (Used for main buttons) */
   --primary: #7dd3fc; 
-  /* Text inside Primary buttons (Dark for contrast) */
   --primary-foreground: #0f172a;
-
-  /* Secondary: Very Pale Blue (Used for muted blocks) */
   --secondary: #f0f9ff;
   --secondary-foreground: #0f172a;
-
-  /* Muted: Light Gray/Blue */
   --muted: #f1f5f9;
   --muted-foreground: #64748b;
-
-  /* Accent: Light Blue (Used for hovers) */
   --accent: #e0f2fe;
   --accent-foreground: #0f172a;
-
-  /* Destructive: Soft Red */
   --destructive: #ef4444;
   --destructive-foreground: #7c0000;
-
-  /* Borders: Light Grayish Blue */
   --border: #e2e8f0;
   --input: #e2e8f0;
-  
-  /* Focus Ring: Baby Blue */
   --ring: #7dd3fc;
-
-  /* Charts: Adjusted to pastel/blue tones */
-  --chart-1: #38bdf8; /* Sky Blue */
-  --chart-2: #818cf8; /* Indigo */
-  --chart-3: #c084fc; /* Purple */
-  --chart-4: #f472b6; /* Pink */
-  --chart-5: #fb7185; /* Rose */
-
+  --chart-1: #38bdf8;
+  --chart-2: #818cf8;
+  --chart-3: #c084fc;
+  --chart-4: #f472b6;
+  --chart-5: #fb7185;
   --radius: 0.625rem;
-
-  /* Sidebar variables */
   --sidebar: #f8fafc;
   --sidebar-foreground: #0f172a;
   --sidebar-primary: #0f172a;
@@ -64,64 +39,37 @@
   --sidebar-accent-foreground: #0f172a;
   --sidebar-border: #e2e8f0;
   --sidebar-ring: #7dd3fc;
-
   --positive: #22c55e;
   --negative: #ef4444;
 }
 
 /* Dark Mode: Deep Navy with Baby Blue Accents */
 .dark {
- /* Main Background: Pure White */
+  /* ... (Keep your existing variables) ... */
   --background: #ffffff;
-  /* Main Text: Deepest Slate (High contrast against white) */
   --foreground: #020617;
-
-  /* Cards: White */
   --card: #ffffff;
   --card-foreground: #020617;
-
-  /* Popovers: White */
   --popover: #ffffff;
   --popover-foreground: #020617;
-
-  /* Primary: Vivid Sky Blue (Darkened from Baby Blue for contrast) */
   --primary: #0284c7; 
-  /* Text inside Primary buttons: White (Better readability) */
   --primary-foreground: #ffffff;
-
-  /* Secondary: Pale Blue (Kept light for background blocks) */
   --secondary: #f0f9ff;
-  /* Secondary Text: Darker for readability */
   --secondary-foreground: #0c4a6e;
-
-  /* Muted: Slate Blue */
   --muted: #f1f5f9;
   --muted-foreground: #64748b;
-
-  /* Accent: Hover states */
   --accent: #e0f2fe;
   --accent-foreground: #0284c7;
-
-  /* Destructive: Red */
   --destructive: #ff0000;
   --destructive-foreground: #7c0000;
-
-  /* Borders: Darker Gray-Blue so inputs define clearly */
   --border: #cbd5e1;
   --input: #cbd5e1;
-  
-  /* Focus Ring: Vivid Blue */
   --ring: #0284c7;
-
-  /* Charts: High Saturation Colors */
-  --chart-1: #0284c7; /* Vivid Blue */
-  --chart-2: #6366f1; /* Indigo */
-  --chart-3: #a855f7; /* Purple */
-  --chart-4: #ec4899; /* Pink */
-  --chart-5: #f43f5e; /* Red */
-
-  --radius: 0.625rem;
-
+  --chart-1: #0284c7;
+  --chart-2: #6366f1;
+  --chart-3: #a855f7;
+  --chart-4: #ec4899;
+  --chart-5: #f43f5e;
   --sidebar: #f8fafc;
   --sidebar-foreground: #0f172a;
   --sidebar-primary: #0284c7;
@@ -130,12 +78,12 @@
   --sidebar-accent-foreground: #0f172a;
   --sidebar-border: #cbd5e1;
   --sidebar-ring: #0284c7;
-
   --positive: #16a34a;
   --negative: #dc2626;
 }
 
 @theme inline {
+  /* ... (Keep your existing theme config) ... */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --color-background: var(--background);
@@ -197,4 +145,20 @@
       );
     background-blend-mode: multiply;
   }
+}
+
+/* --- Add Marquee Animations Here --- */
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-100%); }
+}
+@keyframes marquee2 {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(0%); }
+}
+.animate-marquee {
+  animation: marquee 25s linear infinite;
+}
+.animate-marquee2 {
+  animation: marquee2 25s linear infinite;
 }
