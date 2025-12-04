@@ -153,9 +153,9 @@ export default function DashboardPage() {
                   <CardTitle className="text-lg font-bold">Recent Records</CardTitle>
                   <CardDescription>Latest updates to your medical history</CardDescription>
                 </div>
-                <Button variant="ghost" size="sm" className="text-primary hover:text-primary hover:bg-primary/10 gap-1">
+                {/* <Button variant="ghost" size="sm" className="text-primary hover:text-primary hover:bg-primary/10 gap-1">
                   View All <ArrowUpRight className="h-4 w-4" />
-                </Button>
+                </Button> */}
               </CardHeader>
               <CardContent className="flex-1 p-6">
                 {recentRecords.length === 0 ? (

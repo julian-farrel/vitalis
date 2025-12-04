@@ -9,7 +9,7 @@ import { usePrivy } from "@privy-io/react-auth"
 import { useUser } from "@/context/user-context" // <--- Import Context
 
 const navItems = [
-  { icon: Home, label: "Home", url: "/" },
+  { icon: Home, label: "Home", url: "/dashboard" },
   { icon: FileText, label: "Medical Record", url: "/medical-record" },
   { icon: Wallet, label: "DID Wallet", url: "/did-wallet" },
   { icon: ShieldCheck, label: "Data Consent", url: "/data-consent" },
