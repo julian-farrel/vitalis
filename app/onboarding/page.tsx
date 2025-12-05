@@ -31,7 +31,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { supabase } from "@/lib/supabase"
-import { generateHealthWallet, registerDIDOnChain, VITALIS_CONTRACT_ADDRESS, VITALIS_ABI } from "@/lib/web3"
+// REMOVED generateHealthWallet import as it causes the logic mismatch
+import { registerDIDOnChain, VITALIS_CONTRACT_ADDRESS, VITALIS_ABI } from "@/lib/web3"
 import { createPublicClient, http } from 'viem'
 import { sepolia } from 'viem/chains'
 import Image from "next/image"
@@ -85,7 +86,6 @@ export default function OnboardingPage() {
   const handleSubmit = async () => {
     if (!user?.wallet?.address) return;
     
-    // Get the provider from the connected wallet
     const activeWallet = wallets.find((w) => w.address === user.wallet?.address);
     if (!activeWallet) {
         alert("Wallet not found. Please refresh.");
@@ -97,7 +97,8 @@ export default function OnboardingPage() {
     setStatusText("Verifying Identity...")
 
     try {
-      let didAddress = ""
+      // FIX: Use the connected wallet as the DID
+      let didAddress = user.wallet.address
 
       // 1. Check if user is ALREADY registered on-chain
       const publicClient = createPublicClient({ 
@@ -105,6 +106,7 @@ export default function OnboardingPage() {
         transport: http() 
       })
 
+      let isRegistered = false
       try {
         const existingDID = await publicClient.readContract({
           address: VITALIS_CONTRACT_ADDRESS as `0x${string}`,
@@ -113,24 +115,24 @@ export default function OnboardingPage() {
           account: user.wallet.address as `0x${string}`
         }) as string
         
+        // If returns a valid address (not 0x00...), they are registered
         if (existingDID && existingDID !== "0x0000000000000000000000000000000000000000") {
-          console.log("User already registered on-chain. DID:", existingDID)
-          didAddress = existingDID
+          console.log("User already registered on-chain.")
+          isRegistered = true
           setStatusText("Syncing Profile...")
         }
       } catch (err) {
         console.log("User not registered on-chain yet.")
       }
 
-      // 2. If NO existing DID found, Register a new one on Blockchain
-      if (!didAddress) {
-        setStatusText("Generating Identity...")
-        const healthWallet = generateHealthWallet()
-        didAddress = healthWallet.address
-        console.log("New DID generated:", didAddress)
+      // 2. Register ONLY if not already registered
+      if (!isRegistered) {
+        setStatusText("Registering Identity...")
+        console.log("Registering DID:", didAddress)
         
         setStatusText("Waiting for Signature...")
-        // Pass the provider to the function
+        
+        // Pass the USER'S wallet address. This links msg.sender to the Patient record.
         const txHash = await registerDIDOnChain(didAddress, provider)
         console.log("Transaction confirmed:", txHash)
       }
@@ -173,14 +175,13 @@ export default function OnboardingPage() {
 
       if (error) throw error
       
-      // 5. Show Success Dialog
       setCreatedDID(didAddress)
       setShowSuccessDialog(true)
 
     } catch (error: any) {
       console.error("Onboarding Error:", error)
       if (error.message && (error.message.includes("Internal JSON-RPC error") || error.message.includes("execution reverted"))) {
-        alert("Blockchain Error: The transaction failed. Please check if you have enough Sepolia ETH or if the network is busy.")
+        alert("Blockchain Error: The transaction failed. Possible reasons: \n1. You are already registered.\n2. Insufficient Sepolia ETH.\n3. User rejected request.")
       } else {
         alert("Failed to complete setup. Please check console for details.")
       }

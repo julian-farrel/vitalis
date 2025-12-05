@@ -362,10 +362,6 @@ export default function MedicalRecordsPage() {
           <Tabs defaultValue="all" className="w-full">
             <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5 h-auto p-1 bg-muted/50 mb-6">
               <TabsTrigger value="all" className="py-2">All Records</TabsTrigger>
-              <TabsTrigger value="visit" className="py-2">Visits</TabsTrigger>
-              <TabsTrigger value="lab" className="py-2">Labs</TabsTrigger>
-              <TabsTrigger value="medication" className="py-2">Meds</TabsTrigger>
-              <TabsTrigger value="procedure" className="py-2">Surgeries</TabsTrigger>
             </TabsList>
 
             <TabsContent value="all" className="mt-0">
