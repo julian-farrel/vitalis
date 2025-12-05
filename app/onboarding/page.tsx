@@ -91,6 +91,18 @@ export default function OnboardingPage() {
         alert("Wallet not found. Please refresh.");
         return;
     }
+
+    // --- FIX: Force Chain Switch to Sepolia ---
+    try {
+      // 11155111 is the Chain ID for Sepolia
+      await activeWallet.switchChain(11155111);
+    } catch (error) {
+      console.error("Failed to switch chain:", error);
+      alert("Please switch your wallet network to Sepolia manually to continue.");
+      return;
+    }
+    // ------------------------------------------
+
     const provider = await activeWallet.getEthereumProvider();
 
     setIsLoading(true)
