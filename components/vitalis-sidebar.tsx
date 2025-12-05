@@ -11,8 +11,8 @@ import { useUser } from "@/context/user-context"
 const navItems = [
   { icon: Home, label: "Home", url: "/dashboard" },
   { icon: FileText, label: "Medical Record", url: "/medical-record" },
-  { icon: Wallet, label: "DID Wallet", url: "/did-wallet" },
   { icon: ShieldCheck, label: "Data Consent", url: "/data-consent" },
+  { icon: Wallet, label: "DID Wallet", url: "/did-wallet" },
   { icon: BookOpen, label: "Docs", url: "/docs" },
   { icon: Settings, label: "Settings", url: "/setting" },
 ]

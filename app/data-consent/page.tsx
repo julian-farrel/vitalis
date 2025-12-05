@@ -8,7 +8,7 @@ import { bookAppointmentOnChain } from "@/lib/web3"
 import { useUser } from "@/context/user-context"
 import { 
   ShieldCheck, MapPin, Stethoscope, Calendar, Clock, 
-  Building2, User, Loader2
+  Building2, User, Loader2, History, ExternalLink, CheckCircle2
 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -29,6 +29,7 @@ export default function DataConsentPage() {
 
   const [hospitals, setHospitals] = useState<any[]>([])
   const [activePermissions, setActivePermissions] = useState<any[]>([])
+  const [bookingHistory, setBookingHistory] = useState<any[]>([]) // State for history
   
   const [selectedHospital, setSelectedHospital] = useState<any>(null)
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
@@ -55,6 +56,14 @@ export default function DataConsentPage() {
             .map(id => appData.find(a => a.hospital_id === id)?.hospitals)
           setActivePermissions(uniqueHospitals)
         }
+
+        const { data: historyData } = await supabase
+          .from('appointments')
+          .select('*, hospitals(name, logo_url), doctors(name, specialty)')
+          .eq('patient_wallet', userData.didWalletAddress)
+          .order('created_at', { ascending: false })
+
+        if (historyData) setBookingHistory(historyData)
       }
     }
     fetchData()
@@ -89,7 +98,7 @@ export default function DataConsentPage() {
         provider
       )
 
-      const { error } = await supabase.from('appointments').insert({
+      const { data: newAppointment, error } = await supabase.from('appointments').insert({
         patient_wallet: userData.didWalletAddress,
         doctor_id: selectedDoctor.id,
         hospital_id: selectedHospital.id,
@@ -97,7 +106,7 @@ export default function DataConsentPage() {
         appointment_time: selectedTime,
         status: "Confirmed",
         tx_hash: txHash
-      })
+      }).select('*, hospitals(name, logo_url), doctors(name, specialty)').single()
 
       if (error) throw error
 
@@ -107,6 +116,10 @@ export default function DataConsentPage() {
       if (!activePermissions.find(p => p.id === selectedHospital.id)) {
         setActivePermissions(prev => [...prev, selectedHospital])
       }
+      if (newAppointment) {
+        setBookingHistory(prev => [newAppointment, ...prev])
+      }
+
     } catch (error: any) {
       console.error(error)
       toast({ title: "Error", description: error.message, variant: "destructive" })
@@ -141,14 +154,26 @@ export default function DataConsentPage() {
              ) : (
                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                  {activePermissions.map((hospital: any) => (
-                   <div key={hospital?.id} className="flex items-center gap-4 p-4 rounded-xl border bg-card shadow-sm">
-                      <Avatar className="h-10 w-10">
+                   <div 
+                    key={hospital?.id} 
+                    className="relative overflow-hidden flex items-center gap-4 p-4 rounded-xl border border-emerald-200/60 bg-gradient-to-br from-emerald-50/40 via-white to-emerald-50/20 shadow-sm transition-all duration-300 hover:shadow-md hover:border-emerald-300/80 group"
+                   >
+                      <div className="absolute top-0 right-0 p-3 opacity-50 group-hover:opacity-100 transition-opacity">
+                        <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                      </div>
+
+                      <Avatar className="h-12 w-12 border-2 border-white shadow-sm">
                         <AvatarImage src={hospital?.logo_url || "/placeholder-logo.png"} />
                         <AvatarFallback>HP</AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="font-semibold">{hospital?.name}</p>
-                        <Badge variant="secondary" className="bg-emerald-100 text-emerald-700">Authorized</Badge>
+                        <p className="font-semibold text-foreground">{hospital?.name}</p>
+                        <div className="flex items-center gap-1.5 mt-1">
+                          <Badge variant="secondary" className="bg-white/80 text-emerald-700 hover:bg-white border-emerald-100 backdrop-blur-sm shadow-sm">
+                            <CheckCircle2 className="w-3 h-3 mr-1" />
+                            Authorized
+                          </Badge>
+                        </div>
                       </div>
                    </div>
                  ))}
@@ -190,6 +215,68 @@ export default function DataConsentPage() {
             </div>
           </div>
 
+          <div className="space-y-4 pt-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <History className="h-5 w-5 text-muted-foreground" />
+                Booking History
+              </h2>
+            </div>
+            
+            {bookingHistory.length === 0 ? (
+              <div className="p-8 border border-dashed rounded-xl flex flex-col items-center justify-center text-muted-foreground bg-muted/10 gap-2">
+                <Calendar className="h-8 w-8 opacity-20" />
+                <p>No appointment history found.</p>
+              </div>
+            ) : (
+              <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
+                <div className="divide-y">
+                  {bookingHistory.map((booking) => (
+                    <div key={booking.id} className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-muted/30 transition-colors">
+                      <div className="flex items-start gap-4">
+                        <div className="flex flex-col items-center justify-center h-14 w-14 bg-primary/5 text-primary rounded-xl border border-primary/10">
+                          <span className="text-xl font-bold leading-none">{new Date(booking.appointment_date).getDate()}</span>
+                          <span className="text-[10px] font-bold uppercase tracking-wider">{new Date(booking.appointment_date).toLocaleDateString('en-US', { month: 'short' })}</span>
+                        </div>
+                        
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-semibold text-sm">{booking.hospitals?.name}</h4>
+                            <Badge variant="outline" className="text-[10px] h-5 px-1.5 font-normal text-muted-foreground">
+                              {booking.appointment_time.slice(0, 5)}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+                            <User className="h-3 w-3" />
+                            Dr. {booking.doctors?.name} <span className="opacity-50">•</span> {booking.doctors?.specialty}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between md:justify-end gap-4 w-full md:w-auto mt-2 md:mt-0 pl-[4.5rem] md:pl-0">
+                        {booking.tx_hash && (
+                          <a 
+                            href={`https://sepolia.etherscan.io/tx/${booking.tx_hash}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors"
+                            title="View Transaction"
+                          >
+                            <span className="font-mono">{booking.tx_hash.slice(0, 6)}...{booking.tx_hash.slice(-4)}</span>
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        )}
+                        <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-0 shadow-none">
+                          {booking.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
           <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
             <DialogContent className="sm:max-w-[600px]">
               <DialogHeader>
@@ -204,7 +291,6 @@ export default function DataConsentPage() {
 
               {bookingStep === "details" && selectedHospital && (
                 <div className="space-y-6 py-4">
-                  {/* Updated Image Section */}
                   <div className="relative h-48 w-full rounded-lg overflow-hidden bg-muted flex items-center justify-center">
                     {selectedHospital.image_url ? (
                       <Image 
