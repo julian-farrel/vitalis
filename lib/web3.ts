@@ -2,11 +2,9 @@ import { createWalletClient, custom, publicActions } from 'viem'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { sepolia } from 'viem/chains'
 
-// *** IMPORTANT: REPLACE THIS WITH YOUR NEW DEPLOYED CONTRACT ADDRESS ***
 export const VITALIS_CONTRACT_ADDRESS = "0x33031b613D7283c9ab74D3D9BdB2b5DEC134C61c" 
 
 export const VITALIS_ABI = [
-  // --- Identity & Records Functions ---
   {
     "inputs": [{ "internalType": "address", "name": "_did", "type": "address" }],
     "name": "registerPatient",
@@ -31,7 +29,7 @@ export const VITALIS_ABI = [
     "stateMutability": "nonpayable",
     "type": "function"
   },
-  // --- Appointment Functions ---
+  
   {
     "inputs": [
       { "internalType": "uint256", "name": "_hospitalId", "type": "uint256" },
@@ -110,7 +108,6 @@ export const addRecordToBlockchain = async (recordHash: string, metadata: string
 
   const [account] = await client.requestAddresses()
 
-  // 1. Check registration first
   const myDID = await client.readContract({
       address: VITALIS_CONTRACT_ADDRESS as `0x${string}`,
       abi: VITALIS_ABI,
@@ -118,7 +115,6 @@ export const addRecordToBlockchain = async (recordHash: string, metadata: string
       account: account
   }) as string
 
-  // If user is NOT registered (address is 0x0...), register them first
   if (!myDID || myDID === "0x0000000000000000000000000000000000000000") {
       console.log("User not registered. Auto-registering now...")
       const regHash = await client.writeContract({
@@ -128,12 +124,11 @@ export const addRecordToBlockchain = async (recordHash: string, metadata: string
           functionName: 'registerPatient',
           args: [account]
       })
-      // Wait for registration transaction to complete
+     
       await client.waitForTransactionReceipt({ hash: regHash })
       console.log("Registration complete. Proceeding to add record...")
   }
 
-  // 2. Now add the record
   const hash = await client.writeContract({
     account,
     address: VITALIS_CONTRACT_ADDRESS as `0x${string}`,
@@ -161,7 +156,6 @@ export const bookAppointmentOnChain = async (
 
   const [account] = await client.requestAddresses()
 
-  // 1. Check registration first
   const myDID = await client.readContract({
       address: VITALIS_CONTRACT_ADDRESS as `0x${string}`,
       abi: VITALIS_ABI,
@@ -169,7 +163,6 @@ export const bookAppointmentOnChain = async (
       account: account
   }) as string
 
-   // If user is NOT registered, register them first
    if (!myDID || myDID === "0x0000000000000000000000000000000000000000") {
       console.log("User not registered. Auto-registering now...")
       const regHash = await client.writeContract({
@@ -182,7 +175,6 @@ export const bookAppointmentOnChain = async (
       await client.waitForTransactionReceipt({ hash: regHash })
   }
 
-  // 2. Book Appointment
   const hash = await client.writeContract({
     account,
     address: VITALIS_CONTRACT_ADDRESS as `0x${string}`,

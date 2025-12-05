@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 import Image from "next/image"
 import Link from "next/link"
 import { usePrivy } from "@privy-io/react-auth"
-import { useUser } from "@/context/user-context" // <--- Import Context
+import { useUser } from "@/context/user-context"
 
 const navItems = [
   { icon: Home, label: "Home", url: "/dashboard" },
@@ -24,7 +24,7 @@ interface VitalisSidebarProps {
 
 export function VitalisSidebar({ activeItem = "Home" }: VitalisSidebarProps) {
   const { user } = usePrivy()
-  const { userData } = useUser() // <--- Get live data from context!
+  const { userData } = useUser()
 
   const walletAddress = user?.wallet?.address
   const formattedAddress = walletAddress 
@@ -50,7 +50,7 @@ export function VitalisSidebar({ activeItem = "Home" }: VitalisSidebarProps) {
         <div className="rounded-xl bg-blue-50 border border-blue-100 p-4">
           
           <div className="flex items-start justify-between">
-            <div className="overflow-hidden"> {/* Added overflow hidden container */}
+            <div className="overflow-hidden"> 
               <h3 className="font-semibold text-lg text-foreground truncate block" title={`${userData.firstName} ${userData.lastName}`}>
                 {userData.firstName} {userData.lastName}
               </h3>
@@ -73,7 +73,7 @@ export function VitalisSidebar({ activeItem = "Home" }: VitalisSidebarProps) {
 
           <Separator className="my-4 bg-blue-200" />
           <div className="flex items-center gap-2 text-sm">
-            <span className="text-muted-foreground font-medium">Address:</span>
+            <span className="text-muted-foreground font-medium">Wallet:</span>
             <span 
               className="text-blue-600 font-mono truncate cursor-help" 
               title={walletAddress || "No wallet connected"}

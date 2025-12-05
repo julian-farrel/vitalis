@@ -3,9 +3,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* <CHANGE> Updated to White & Baby Blue Theme */
 :root {
-  /* ... (Keep your existing variables) ... */
   --background: #ffffff;
   --foreground: #0f172a;
   --card: #ffffff;
@@ -43,9 +41,7 @@
   --negative: #ef4444;
 }
 
-/* Dark Mode: Deep Navy with Baby Blue Accents */
 .dark {
-  /* ... (Keep your existing variables) ... */
   --background: #ffffff;
   --foreground: #020617;
   --card: #ffffff;
@@ -83,7 +79,6 @@
 }
 
 @theme inline {
-  /* ... (Keep your existing theme config) ... */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --color-background: var(--background);
@@ -132,7 +127,6 @@
   }
   body {
     @apply bg-background text-foreground;
-    /* <CHANGE> Soft Blue Gradient for White Background */
     background-image: radial-gradient(
         1000px 800px at 80% 0%,
         color-mix(in oklch, var(--color-primary) 10%, transparent) 0%,
@@ -147,7 +141,6 @@
   }
 }
 
-/* --- Add Marquee Animations Here --- */
 @keyframes marquee {
   0% { transform: translateX(0%); }
   100% { transform: translateX(-100%); }

@@ -26,11 +26,9 @@ export default function DataConsentPage() {
   const { wallets } = useWallets()
   const { toast } = useToast()
 
-  // Data State
   const [hospitals, setHospitals] = useState<any[]>([])
   const [activePermissions, setActivePermissions] = useState<any[]>([])
   
-  // Booking Wizard State
   const [selectedHospital, setSelectedHospital] = useState<any>(null)
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
   const [doctors, setDoctors] = useState<any[]>([])
@@ -42,11 +40,9 @@ export default function DataConsentPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      // 1. Fetch Hospitals
       const { data: hospitalData } = await supabase.from('hospitals').select('*')
       if (hospitalData) setHospitals(hospitalData)
 
-      // 2. Fetch Permissions (Based on existing appointments)
       if (userData.didWalletAddress) {
         const { data: appData } = await supabase
           .from('appointments')
@@ -54,7 +50,6 @@ export default function DataConsentPage() {
           .eq('patient_wallet', userData.didWalletAddress)
         
         if (appData) {
-          // Deduplicate hospitals
           const uniqueHospitals = Array.from(new Set(appData.map(a => a.hospital_id)))
             .map(id => appData.find(a => a.hospital_id === id)?.hospitals)
           setActivePermissions(uniqueHospitals)
@@ -85,7 +80,6 @@ export default function DataConsentPage() {
       if (!activeWallet) throw new Error("Wallet not found");
       const provider = await activeWallet.getEthereumProvider();
 
-      // 1. Execute Smart Contract
       const txHash = await bookAppointmentOnChain(
         selectedHospital.id,
         selectedDoctor.id,
@@ -94,7 +88,6 @@ export default function DataConsentPage() {
         provider
       )
 
-      // 2. Save to Database
       const { error } = await supabase.from('appointments').insert({
         patient_wallet: userData.didWalletAddress,
         doctor_id: selectedDoctor.id,
@@ -110,7 +103,6 @@ export default function DataConsentPage() {
       toast({ title: "Success", description: "Appointment confirmed on blockchain!" })
       setIsDetailsOpen(false)
       
-      // Refresh permissions
       if (!activePermissions.find(p => p.id === selectedHospital.id)) {
         setActivePermissions(prev => [...prev, selectedHospital])
       }

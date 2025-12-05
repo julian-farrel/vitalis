@@ -2,12 +2,7 @@ import {
   BookOpen, 
   FileText, 
   Download, 
-  Code, 
-  Shield, 
-  GraduationCap, 
-  Search, 
-  Youtube, 
-  Terminal 
+  Search
 } from "lucide-react"
 import { VitalisSidebar } from "@/components/vitalis-sidebar"
 import { Input } from "@/components/ui/input"
@@ -38,15 +33,6 @@ export default function DocsPage() {
                 <p className="text-muted-foreground">Technical guides, smart contract references, and resources.</p>
               </div>
             </div>
-            
-            {/* Search Bar Feature */}
-            <div className="relative w-full md:w-96">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input 
-                placeholder="Search guides, error codes, or APIs..." 
-                className="pl-10 bg-background border-border shadow-sm"
-              />
-            </div>
           </div>
 
           {/* Featured: Whitepaper Download */}
@@ -73,69 +59,6 @@ export default function DocsPage() {
                </Link>
             </div>
             <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
-          </div>
-
-          {/* Resource Hub Grid */}
-          <div>
-            <h3 className="mb-4 text-lg font-semibold">Resource Hub</h3>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-               
-               {/* Card 1: Getting Started */}
-               <Link href="#" className="group flex flex-col rounded-xl border bg-card p-6 shadow-sm transition-all hover:border-primary/50 hover:shadow-md">
-                  <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600 group-hover:bg-blue-500 group-hover:text-white transition-colors">
-                     <GraduationCap className="h-5 w-5" />
-                  </div>
-                  <h4 className="font-semibold group-hover:text-primary transition-colors">User Guides</h4>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                     Step-by-step tutorials for wallet setup, record uploading, and granting permissions.
-                  </p>
-               </Link>
-
-               {/* Card 2: Developer API */}
-               <Link href="#" className="group flex flex-col rounded-xl border bg-card p-6 shadow-sm transition-all hover:border-primary/50 hover:shadow-md">
-                  <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-purple-500/10 text-purple-600 group-hover:bg-purple-500 group-hover:text-white transition-colors">
-                     <Code className="h-5 w-5" />
-                  </div>
-                  <h4 className="font-semibold group-hover:text-primary transition-colors">Developer SDK</h4>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                     API references and SDKs for integrating Vitalis into Hospital Management Systems (HMS).
-                  </p>
-               </Link>
-
-               {/* Card 3: Privacy Architecture */}
-               <Link href="#" className="group flex flex-col rounded-xl border bg-card p-6 shadow-sm transition-all hover:border-primary/50 hover:shadow-md">
-                  <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-green-500/10 text-green-600 group-hover:bg-green-500 group-hover:text-white transition-colors">
-                     <Shield className="h-5 w-5" />
-                  </div>
-                  <h4 className="font-semibold group-hover:text-primary transition-colors">Security Architecture</h4>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                     Deep dive into Zero-Knowledge Proofs (ZKPs) and HIPAA compliance layers.
-                  </p>
-               </Link>
-
-               {/* Card 4: Video Tutorials (New) */}
-               <Link href="#" className="group flex flex-col rounded-xl border bg-card p-6 shadow-sm transition-all hover:border-primary/50 hover:shadow-md">
-                  <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-red-500/10 text-red-600 group-hover:bg-red-500 group-hover:text-white transition-colors">
-                     <Youtube className="h-5 w-5" />
-                  </div>
-                  <h4 className="font-semibold group-hover:text-primary transition-colors">Video Tutorials</h4>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                     Visual walkthroughs for doctors and patients on managing digital consents.
-                  </p>
-               </Link>
-
-               {/* Card 5: Smart Contracts (New) */}
-               <Link href="#" className="group flex flex-col rounded-xl border bg-card p-6 shadow-sm transition-all hover:border-primary/50 hover:shadow-md">
-                  <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-slate-500/10 text-slate-600 group-hover:bg-slate-500 group-hover:text-white transition-colors">
-                     <Terminal className="h-5 w-5" />
-                  </div>
-                  <h4 className="font-semibold group-hover:text-primary transition-colors">Smart Contracts</h4>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                     Audited Solidity contracts for PermissionRegistry and RecordStorage.
-                  </p>
-               </Link>
-
-            </div>
           </div>
 
           {/* Expanded FAQ Section */}

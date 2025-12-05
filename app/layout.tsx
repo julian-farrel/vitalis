@@ -4,7 +4,7 @@ import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
-import Providers from "@/components/providers" // <--- Import Providers
+import Providers from "@/components/providers"
 
 export const metadata: Metadata = {
   title: "Vitalis",

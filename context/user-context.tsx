@@ -15,7 +15,7 @@ interface UserData {
   allergies: string
   medications: string
   conditions: string
-  didWalletAddress: string // <--- ADD THIS
+  didWalletAddress: string
 }
 
 interface UserContextType {
@@ -35,7 +35,7 @@ const defaultUserData: UserData = {
   allergies: "None",
   medications: "None",
   conditions: "None",
-  didWalletAddress: "" // <--- ADD DEFAULT
+  didWalletAddress: ""
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined)

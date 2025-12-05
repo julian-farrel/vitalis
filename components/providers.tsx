@@ -2,7 +2,7 @@
 
 import { PrivyProvider } from "@privy-io/react-auth"
 import SessionManager from "@/components/session-manager"
-import { UserProvider } from "@/context/user-context" // <--- Import UserProvider
+import { UserProvider } from "@/context/user-context"
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (

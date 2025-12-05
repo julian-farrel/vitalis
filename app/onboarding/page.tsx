@@ -45,7 +45,6 @@ export default function OnboardingPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [statusText, setStatusText] = useState("Complete Setup")
   
-  // Success Popup State
   const [showSuccessDialog, setShowSuccessDialog] = useState(false)
   const [createdDID, setCreatedDID] = useState("")
 
@@ -91,15 +90,13 @@ export default function OnboardingPage() {
         return;
     }
 
-    // --- FIX START: Force Switch to Sepolia ---
     try {
-      await activeWallet.switchChain(11155111); // 11155111 is Sepolia Chain ID
+      await activeWallet.switchChain(11155111);
     } catch (error) {
       console.error("Failed to switch chain:", error);
       alert("Please switch your wallet network to Sepolia manually.");
       return;
     }
-    // --- FIX END ---
 
     const provider = await activeWallet.getEthereumProvider();
 

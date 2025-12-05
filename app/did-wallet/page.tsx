@@ -1,32 +1,20 @@
 "use client"
 
-import { useState } from "react"
-import { 
-  Copy, 
-  Shield, 
-  Eye, 
-  EyeOff, 
-  AlertTriangle, 
-  FileBadge,
+import {
+  Copy,
   CheckCircle2,
   Activity,
   Fingerprint,
   Wifi,
-  Server,
-  History
+  Server
 } from "lucide-react"
 import { VitalisSidebar } from "@/components/vitalis-sidebar"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useUser } from "@/context/user-context"
 
-const credentials: any[] = []
-const activityLog: any[] = []
-
 export default function DIDWalletPage() {
-  const [showSecret, setShowSecret] = useState(false)
   const { userData } = useUser()
 
   const handleCopy = (text: string) => {
@@ -48,7 +36,7 @@ export default function DIDWalletPage() {
             </div>
             <div>
               <h1 className="text-3xl font-bold tracking-tight">Identity Vault</h1>
-              <p className="text-muted-foreground">Manage your secure digital identity and verifiable credentials.</p>
+              <p className="text-muted-foreground">Manage your secure digital identity.</p>
             </div>
           </div>
 
@@ -117,83 +105,6 @@ export default function DIDWalletPage() {
                 </div>
               </CardContent>
             </Card>
-          </div>
-
-           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
-                <FileBadge className="h-5 w-5 text-indigo-600" /> Verifiable Credentials
-              </h2>
-            </div>
-            
-            {credentials.length === 0 ? (
-              <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-xl bg-muted/20">
-                <p className="text-muted-foreground">No credentials issued yet.</p>
-              </div>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {credentials.map((vc: any) => (
-                  <div key={vc.id}>{vc.name}</div>
-                ))}
-              </div>
-            )}
-          </div>
-
-           <div className="grid gap-6 lg:grid-cols-3">
-            
-            <Card className="border-destructive/20 lg:col-span-1">
-              <CardHeader>
-                <CardTitle className="text-destructive flex items-center gap-2 text-base">
-                  <Shield className="h-4 w-4" /> Digital Signature
-                </CardTitle>
-                <CardDescription>Used to securely sign your records.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Alert variant="destructive" className="py-2 bg-destructive/5 border-destructive/20">
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertDescription className="text-xs">
-                    This is your master recovery secret. Keep it safe.
-                  </AlertDescription>
-                </Alert>
-                
-                <div className="space-y-2">
-                  <div className="relative">
-                    <div className={`p-3 rounded bg-muted font-mono text-xs break-all ${showSecret ? 'blur-none text-destructive' : 'blur-sm select-none text-transparent'}`}>
-                      (This would be the generated private key)
-                    </div>
-                    {!showSecret && (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <Button variant="secondary" size="sm" className="h-7 text-xs" onClick={() => setShowSecret(true)}>
-                          <Eye className="h-3 w-3 mr-1" /> Reveal
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                  {showSecret && (
-                    <Button variant="ghost" size="sm" className="w-full h-7 text-xs" onClick={() => setShowSecret(false)}>
-                      <EyeOff className="h-3 w-3 mr-1" /> Hide Secret
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <History className="h-4 w-4" /> System History
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                {activityLog.length === 0 ? (
-                  <div className="p-8 text-center text-muted-foreground text-sm">No activity logs found.</div>
-                ) : (
-                  <div className="divide-y">
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
           </div>
 
         </div>

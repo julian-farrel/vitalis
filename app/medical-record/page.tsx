@@ -104,14 +104,12 @@ export default function MedicalRecordsPage() {
         return;
     }
 
-    // --- FIX START ---
     try {
-      await activeWallet.switchChain(11155111); // Force Sepolia
+      await activeWallet.switchChain(11155111);
     } catch (error) {
       toast({ title: "Network Error", description: "Please switch to Sepolia network.", variant: "destructive" })
       return;
     }
-    // --- FIX END ---
 
     const provider = await activeWallet.getEthereumProvider();
 
@@ -355,17 +353,6 @@ export default function MedicalRecordsPage() {
                 <p className="text-sm font-medium">{userData.conditions || "None Reported"}</p>
               </CardContent>
             </Card>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search by doctor, diagnosis, or date..."
-                className="pl-9 bg-card"
-              />
-            </div>
           </div>
 
           <Tabs defaultValue="all" className="w-full">

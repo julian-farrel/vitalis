@@ -21,9 +21,6 @@ import Image from "next/image"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase" 
 
-// --- Components ---
-
-// 1. Logo Marquee Component (Refined)
 const LogoMarquee = ({ title, items }: { title: string, items: string[] }) => {
   return (
     <div className="py-12 w-full overflow-hidden border-y border-border/50 bg-secondary/20 backdrop-blur-sm">
@@ -62,7 +59,6 @@ export default function LandingPage() {
   const { login, ready, authenticated, user } = usePrivy()
   const router = useRouter()
 
-  // --- Functional Logic (Unchanged) ---
   useEffect(() => {
     const checkUserStatus = async () => {
       if (ready && authenticated && user?.wallet?.address) {

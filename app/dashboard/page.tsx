@@ -25,11 +25,9 @@ export default function DashboardPage() {
   const router = useRouter()
   const { userData } = useUser()
 
-  // Data State
   const [recentRecords, setRecentRecords] = useState<any[]>([])
   const [upcomingAppointments, setUpcomingAppointments] = useState<any[]>([])
   
-  // Metrics State
   const [totalRecords, setTotalRecords] = useState(0)
   const [totalBlocks, setTotalBlocks] = useState(0)
   const [futureVisitsCount, setFutureVisitsCount] = useState(0)
@@ -44,7 +42,6 @@ export default function DashboardPage() {
     const fetchDashboardData = async () => {
       if (!userData.didWalletAddress) return;
 
-      // 1. Fetch ALL Records (to get total count + recent list)
       const { data: allRecords } = await supabase
         .from('records')
         .select('*')
@@ -53,10 +50,9 @@ export default function DashboardPage() {
 
       if (allRecords) {
         setTotalRecords(allRecords.length)
-        setRecentRecords(allRecords.slice(0, 5)) // Keep only top 5 for the list
+        setRecentRecords(allRecords.slice(0, 5))
       }
 
-      // 2. Fetch ALL Appointments (to get total blocks + upcoming list)
       const { data: allApps } = await supabase
         .from('appointments')
         .select('*, doctors(name, specialty), hospitals(name)')
@@ -64,15 +60,12 @@ export default function DashboardPage() {
         .order('appointment_date', { ascending: true })
 
       if (allApps) {
-        // Filter for future dates
         const today = new Date().toISOString().split('T')[0]
         const futureApps = allApps.filter(app => app.appointment_date >= today)
         
         setFutureVisitsCount(futureApps.length)
-        setUpcomingAppointments(futureApps.slice(0, 3)) // Keep top 3 for the list
+        setUpcomingAppointments(futureApps.slice(0, 3)) 
 
-        // Calculate "Blocks": Total Records + Total Appointments (Past & Future)
-        // Every record and every appointment is a transaction on the blockchain
         setTotalBlocks((allRecords?.length || 0) + allApps.length)
       }
     }
