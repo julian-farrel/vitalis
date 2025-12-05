@@ -1,6 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
+// UPDATE: Import usePrivy AND useWallets
+import { usePrivy, useWallets } from "@privy-io/react-auth" 
+import { VitalisSidebar } from "@/components/vitalis-sidebar"
+// ... keep existing imports ...
 import { 
   FileText, 
   AlertCircle,
@@ -14,7 +18,6 @@ import {
   Activity,
   Search
 } from "lucide-react"
-import { VitalisSidebar } from "@/components/vitalis-sidebar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -40,6 +43,9 @@ interface MedicalRecord {
 export default function MedicalRecordsPage() {
   const { userData } = useUser()
   const { toast } = useToast()
+  // UPDATE: get user and wallets
+  const { user } = usePrivy()
+  const { wallets } = useWallets()
   
   const [localRecords, setLocalRecords] = useState<MedicalRecord[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -55,7 +61,6 @@ export default function MedicalRecordsPage() {
   const [docType, setDocType] = useState("visit")
   const [docDate, setDocDate] = useState("")
 
-  // --- Fetch Records on Load ---
   useEffect(() => {
     const fetchRecords = async () => {
       if (!userData.didWalletAddress) return;
@@ -79,7 +84,6 @@ export default function MedicalRecordsPage() {
     fetchRecords()
   }, [userData.didWalletAddress])
 
-  // --- Helper: Compute SHA-256 Hash ---
   const computeSHA256 = async (file: File) => {
     const buffer = await file.arrayBuffer()
     const hashBuffer = await crypto.subtle.digest("SHA-256", buffer)
@@ -87,7 +91,6 @@ export default function MedicalRecordsPage() {
     return "0x" + hashArray.map((b) => b.toString(16).padStart(2, "0")).join("")
   }
 
-  // --- Upload Logic ---
   const handleUpload = async () => {
     if (!file || !docName || !docDate) {
       toast({ title: "Missing Information", description: "Please fill in all fields.", variant: "destructive" })
@@ -99,6 +102,14 @@ export default function MedicalRecordsPage() {
        return
     }
 
+    // UPDATE: Find active wallet and provider
+    const activeWallet = wallets.find((w) => w.address === user?.wallet?.address);
+    if (!activeWallet) {
+        toast({ title: "Wallet Error", description: "Active wallet not found. Please refresh.", variant: "destructive" })
+        return;
+    }
+    const provider = await activeWallet.getEthereumProvider();
+
     setIsUploading(true)
     
     try {
@@ -108,7 +119,6 @@ export default function MedicalRecordsPage() {
 
       // 2. Upload to Supabase Storage
       setUploadStep("uploading")
-      // Sanitize filename
       const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_')
       const fileName = `${userData.didWalletAddress}/${Date.now()}_${cleanFileName}`
       
@@ -122,8 +132,8 @@ export default function MedicalRecordsPage() {
       setUploadStep("minting")
       const metadata = JSON.stringify({ name: docName, type: docType, date: docDate })
       
-      // Note: This requires the user to sign a transaction in their wallet
-      await addRecordToBlockchain(fileHash, metadata)
+      // UPDATE: Pass provider to function
+      await addRecordToBlockchain(fileHash, metadata, provider)
 
       // 4. Save Metadata to Database
       const newRecord = {
@@ -144,7 +154,6 @@ export default function MedicalRecordsPage() {
       
       if (dbError) throw new Error("Database save failed: " + dbError.message)
 
-      // 5. Update UI
       if (insertedData) setLocalRecords(prev => [insertedData, ...prev])
       setUploadStep("success")
       toast({ title: "Success", description: "Record secured on blockchain and stored." })
@@ -156,7 +165,6 @@ export default function MedicalRecordsPage() {
 
     } catch (error: any) {
       console.error(error)
-      // Friendly error message for common blockchain issues
       let msg = error.message
       if (msg.includes("User rejected")) msg = "Transaction rejected by user."
       
@@ -180,6 +188,7 @@ export default function MedicalRecordsPage() {
     return localRecords.filter(r => r.type === filterType);
   }
 
+  // ... (keep the EmptyState and rest of the return JSX exactly as is)
   const EmptyState = () => (
     <div className="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed rounded-xl bg-muted/20">
       <div className="p-4 bg-muted rounded-full mb-4">
@@ -201,7 +210,8 @@ export default function MedicalRecordsPage() {
 
       <main className="pl-64 w-full">
         <div className="flex flex-col gap-6 p-8 max-w-7xl mx-auto">
-          
+          {/* ... (Rest of the JSX is identical to original file, simply use the original structure) ... */}
+          {/* Due to length I am not repeating the entire UI code, but ensure you keep the UI code from the original file I analyzed */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
@@ -313,7 +323,6 @@ export default function MedicalRecordsPage() {
             </Dialog>
           </div>
 
-          {/* New Patient Medical Profile Section */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2">
             <Card className="bg-red-50/50 border-red-100 dark:bg-red-950/10 dark:border-red-900/30">
               <CardHeader className="pb-2">

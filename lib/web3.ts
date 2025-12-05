@@ -2,7 +2,7 @@ import { createWalletClient, custom, publicActions } from 'viem'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { sepolia } from 'viem/chains'
 
-// *** IMPORTANT: REPLACE THIS WITH YOUR NEW DEPLOYED CONTRACT ADDRESS ***
+// *** IMPORTANT: REPLACE THIS WITH YOUR NEW DEPLOYED CONTRACT ADDRESS IF NEEDED ***
 export const VITALIS_CONTRACT_ADDRESS = "0x4f6194E931b71F26fFae366470D56Ee3C40dD134" 
 
 export const VITALIS_ABI = [
@@ -38,12 +38,14 @@ export const generateHealthWallet = () => {
   return { address: account.address, privateKey: privateKey }
 }
 
-export const registerDIDOnChain = async (didAddress: string) => {
-  if (typeof window === 'undefined' || !window.ethereum) return;
+// UPDATE: Add 'provider' argument
+export const registerDIDOnChain = async (didAddress: string, provider: any) => {
+  if (!provider) throw new Error("No wallet provider found");
+  
   try {
     const client = createWalletClient({
       chain: sepolia, 
-      transport: custom(window.ethereum)
+      transport: custom(provider) // Use the passed provider
     }).extend(publicActions)
 
     const [account] = await client.requestAddresses()
@@ -62,17 +64,20 @@ export const registerDIDOnChain = async (didAddress: string) => {
   }
 }
 
-export const addRecordToBlockchain = async (recordHash: string, metadata: string) => {
-  if (typeof window === 'undefined' || !window.ethereum) throw new Error("No Wallet Found");
+// UPDATE: Add 'provider' argument
+export const addRecordToBlockchain = async (recordHash: string, metadata: string, provider: any) => {
+  if (!provider) throw new Error("No wallet provider found");
 
   const client = createWalletClient({
     chain: sepolia,
-    transport: custom(window.ethereum)
+    transport: custom(provider) // Use the passed provider
   }).extend(publicActions)
 
   const [account] = await client.requestAddresses()
 
   // 1. Check registration first to avoid RPC Error
+  // Note: We use readContract which doesn't strictly require the wallet client, 
+  // but sharing the client is fine here.
   const myDID = await client.readContract({
       address: VITALIS_CONTRACT_ADDRESS as `0x${string}`,
       abi: VITALIS_ABI,
@@ -83,7 +88,6 @@ export const addRecordToBlockchain = async (recordHash: string, metadata: string
   // If user is NOT registered (address is 0x0...), register them first
   if (!myDID || myDID === "0x0000000000000000000000000000000000000000") {
       console.log("User not registered. Auto-registering now...")
-      // We register the user's OWN wallet as their DID for simplicity in this flow
       const regHash = await client.writeContract({
           account,
           address: VITALIS_CONTRACT_ADDRESS as `0x${string}`,
