@@ -23,7 +23,6 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark antialiased">
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
-        {/* Wrap children with Providers */}
         <Providers>
           {children}
         </Providers>

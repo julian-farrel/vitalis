@@ -27,6 +27,7 @@ export function VitalisSidebar({ activeItem = "Home" }: VitalisSidebarProps) {
   const { userData } = useUser()
 
   const walletAddress = user?.wallet?.address
+  
   const formattedAddress = walletAddress 
     ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-5)}`
     : "Connecting..."

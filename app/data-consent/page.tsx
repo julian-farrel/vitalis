@@ -131,7 +131,6 @@ export default function DataConsentPage() {
             </div>
           </div>
 
-          {/* Section 1: Active Permissions */}
           <div className="space-y-4">
              <h2 className="text-lg font-semibold">Active Permissions</h2>
              {activePermissions.length === 0 ? (
@@ -156,7 +155,6 @@ export default function DataConsentPage() {
              )}
           </div>
 
-          {/* Section 2: Hospital Listing */}
           <div className="space-y-4">
             <h2 className="text-lg font-semibold">Verified Healthcare Partners</h2>
             <div className="grid gap-6 md:grid-cols-3">
@@ -191,7 +189,6 @@ export default function DataConsentPage() {
             </div>
           </div>
 
-          {/* Booking Wizard Modal */}
           <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
             <DialogContent className="sm:max-w-[600px]">
               <DialogHeader>
@@ -204,7 +201,6 @@ export default function DataConsentPage() {
                 <DialogDescription>{selectedHospital?.address}</DialogDescription>
               </DialogHeader>
 
-              {/* Step 1: Hospital Info */}
               {bookingStep === "details" && selectedHospital && (
                 <div className="space-y-6 py-4">
                   <div className="relative h-40 w-full rounded-lg bg-muted flex items-center justify-center">
@@ -215,7 +211,6 @@ export default function DataConsentPage() {
                 </div>
               )}
 
-              {/* Step 2: Choose Doctor */}
               {bookingStep === "doctors" && (
                 <div className="space-y-4 py-2">
                   <h3 className="font-semibold text-sm">Select a Specialist</h3>
@@ -242,7 +237,6 @@ export default function DataConsentPage() {
                 </div>
               )}
 
-              {/* Step 3: Schedule */}
               {bookingStep === "schedule" && selectedDoctor && (
                 <div className="space-y-6 py-2">
                    <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
@@ -273,7 +267,6 @@ export default function DataConsentPage() {
                 </div>
               )}
 
-              {/* Step 4: Confirm */}
               {bookingStep === "confirm" && (
                 <div className="space-y-6 py-4 text-center">
                    <div className="bg-muted/40 p-4 rounded-xl text-left space-y-3 border">

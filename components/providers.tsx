@@ -19,11 +19,10 @@ export default function Providers({ children }: { children: React.ReactNode }) {
             createOnLogin: "users-without-wallets",
           },
         },
-        loginMethods: ['wallet', 'email', 'google'],
+        loginMethods: ['wallet'],
       }}
     >
       <SessionManager>
-        {/* Wrap children with UserProvider so components can access user data */}
         <UserProvider>
           {children}
         </UserProvider>

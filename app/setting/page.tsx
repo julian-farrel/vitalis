@@ -40,7 +40,6 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* Profile Section - Read Only */}
           <Card className="border-border">
             <CardHeader>
               <CardTitle>Personal Information</CardTitle>

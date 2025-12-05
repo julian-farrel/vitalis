@@ -16,13 +16,11 @@ export default function DocsPage() {
   return (
     <div className="flex min-h-screen w-full bg-muted/40">
       
-      {/* Sidebar with activeItem set to "Docs" */}
       <VitalisSidebar activeItem="Docs" />
       
       <main className="pl-64 w-full">
         <div className="flex flex-col gap-8 p-8 max-w-6xl mx-auto">
           
-          {/* Header & Search */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex items-center gap-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
@@ -35,7 +33,6 @@ export default function DocsPage() {
             </div>
           </div>
 
-          {/* Featured: Whitepaper Download */}
           <div className="relative overflow-hidden rounded-xl bg-primary/5 border border-primary/20 p-8">
             <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                <div className="space-y-2 max-w-2xl">
@@ -61,12 +58,10 @@ export default function DocsPage() {
             <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
           </div>
 
-          {/* Expanded FAQ Section */}
           <div className="rounded-xl border bg-card p-8 shadow-sm">
              <h3 className="mb-6 font-semibold text-lg">Frequently Asked Questions</h3>
              <div className="space-y-6">
                 
-                {/* Data Privacy */}
                 <div>
                    <h5 className="font-medium text-sm">Is my actual medical data stored on the blockchain?</h5>
                    <p className="mt-1 text-sm text-muted-foreground">
@@ -75,7 +70,6 @@ export default function DocsPage() {
                 </div>
                 <div className="h-px bg-border" />
                 
-                {/* Emergency Access (New) */}
                 <div>
                    <h5 className="font-medium text-sm">What happens in an emergency if I am unconscious?</h5>
                    <p className="mt-1 text-sm text-muted-foreground">
@@ -84,7 +78,6 @@ export default function DocsPage() {
                 </div>
                 <div className="h-px bg-border" />
 
-                {/* Costs (New) */}
                 <div>
                    <h5 className="font-medium text-sm">Do I have to pay gas fees to view my own records?</h5>
                    <p className="mt-1 text-sm text-muted-foreground">
@@ -93,7 +86,6 @@ export default function DocsPage() {
                 </div>
                 <div className="h-px bg-border" />
 
-                {/* Recovery */}
                 <div>
                    <h5 className="font-medium text-sm">What happens if I lose my wallet key?</h5>
                    <p className="mt-1 text-sm text-muted-foreground">

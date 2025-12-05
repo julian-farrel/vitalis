@@ -87,7 +87,6 @@ export default function DashboardPage() {
 
         <div className="p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
           
-          {/* Header */}
           <div className="flex items-end justify-between">
             <div>
               <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-1">Overview</h2>
@@ -101,10 +100,8 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* --- METRIC CARDS --- */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             
-            {/* Card 1: Blocks Secured */}
             <Card className="border-indigo-100 bg-gradient-to-br from-indigo-50/50 to-white hover:shadow-md transition-all">
               <CardContent className="p-6">
                 <div className="flex justify-between items-start mb-4">
@@ -127,7 +124,6 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
-            {/* Card 2: Medical Records */}
             <Card className="border-blue-100 bg-gradient-to-br from-blue-50/50 to-white hover:shadow-md transition-all">
               <CardContent className="p-6">
                 <div className="flex justify-between items-start mb-4">
@@ -150,7 +146,6 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
-            {/* Card 3: Upcoming Appointments */}
             <Card className="border-emerald-100 bg-gradient-to-br from-emerald-50/50 to-white hover:shadow-md transition-all">
               <CardContent className="p-6">
                 <div className="flex justify-between items-start mb-4">
@@ -177,7 +172,6 @@ export default function DashboardPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            {/* Recent Records List */}
             <Card className="lg:col-span-2 border-border/60 bg-card/40 backdrop-blur-md shadow-sm h-full flex flex-col">
               <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-border/40">
                 <div className="space-y-1">
@@ -225,7 +219,6 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
-            {/* Upcoming Appointments List */}
             <Card className="border-border/60 bg-card/40 backdrop-blur-md shadow-sm h-full flex flex-col">
               <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-border/40">
                 <div className="space-y-1">

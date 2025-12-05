@@ -31,7 +31,6 @@ const LogoMarquee = ({ title, items }: { title: string, items: string[] }) => {
       </div>
       
       <div className="relative flex overflow-x-hidden group mask-gradient">
-        {/* First set of logos */}
         <div className="flex animate-marquee whitespace-nowrap gap-20 px-10 items-center">
           {items.map((item, i) => (
             <span key={i} className="text-xl font-bold text-foreground/40 flex items-center gap-3 hover:text-primary transition-colors cursor-default">
@@ -41,7 +40,6 @@ const LogoMarquee = ({ title, items }: { title: string, items: string[] }) => {
           ))}
         </div>
 
-        {/* Second set of logos (Duplicate for seamless loop) */}
         <div className="flex absolute top-0 animate-marquee2 whitespace-nowrap gap-20 px-10 items-center">
           {items.map((item, i) => (
             <span key={`dup-${i}`} className="text-xl font-bold text-foreground/40 flex items-center gap-3 hover:text-primary transition-colors cursor-default">
@@ -88,7 +86,6 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col font-sans selection:bg-primary/20">
       
-      {/* 1. Navigation Bar */}
       <header className="fixed top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5 transition-opacity hover:opacity-80">
@@ -104,7 +101,6 @@ export default function LandingPage() {
           </div>
           
           <div className="flex items-center gap-4">
-            {/* Documentation link removed from here */}
             <Button 
               onClick={login} 
               disabled={!ready || authenticated}
@@ -120,9 +116,7 @@ export default function LandingPage() {
 
       <main className="flex-1 flex flex-col pt-32 overflow-hidden">
         
-        {/* 2. Hero Section */}
         <section className="relative px-6 pb-24 md:pb-32 lg:pb-40">
-          {/* Background Decorative Blobs */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-primary/5 blur-[100px] rounded-full pointer-events-none -z-10" />
           
           <div className="container mx-auto flex flex-col items-center text-center animate-in fade-in slide-in-from-bottom-8 duration-1000">
@@ -157,7 +151,6 @@ export default function LandingPage() {
                  className="h-14 px-8 w-full sm:w-auto text-base gap-2 rounded-full border-primary/20 bg-background/50 hover:bg-primary/5 backdrop-blur-sm transition-all duration-300" 
                  asChild
                >
-                {/* Updated to link to Google Drive */}
                 <Link 
                   href="https://drive.google.com/" 
                   target="_blank"
@@ -172,10 +165,8 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* 3. Feature Highlights (Bento Style) */}
         <section className="container mx-auto px-6 mb-32">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
-             {/* Card 1 */}
              <div className="group relative overflow-hidden p-8 rounded-[2rem] border border-border bg-card shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                 <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
                   <Lock className="h-32 w-32 -rotate-12" />
@@ -189,7 +180,6 @@ export default function LandingPage() {
                 </p>
              </div>
              
-             {/* Card 2 */}
              <div className="group relative overflow-hidden p-8 rounded-[2rem] border border-border bg-card shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                 <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
                   <ShieldCheck className="h-32 w-32 -rotate-12" />
@@ -203,7 +193,6 @@ export default function LandingPage() {
                 </p>
              </div>
              
-             {/* Card 3 */}
              <div className="group relative overflow-hidden p-8 rounded-[2rem] border border-border bg-card shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                 <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
                   <Globe className="h-32 w-32 -rotate-12" />
@@ -219,12 +208,10 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* 4. Why Choose Vitalis Section */}
         <section className="bg-secondary/30 border-y border-border/50 py-24 lg:py-32 overflow-hidden">
           <div className="container mx-auto px-6">
             <div className="grid lg:grid-cols-2 gap-16 items-center">
               
-              {/* Text Content */}
               <div className="order-2 lg:order-1">
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-bold mb-8">
                   <Zap className="h-4 w-4" /> Why Choose Vitalis
@@ -253,13 +240,10 @@ export default function LandingPage() {
                 </div>
               </div>
               
-              {/* Visual Graphic - Digital Card */}
               <div className="order-1 lg:order-2 relative perspective-1000 group">
-                {/* Glow Effect */}
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/30 to-purple-500/30 rounded-[3rem] blur-[80px] -z-10 group-hover:blur-[100px] transition-all duration-700" />
                 
                 <div className="relative bg-gradient-to-br from-background to-secondary border border-white/20 rounded-[2rem] p-8 shadow-2xl backdrop-blur-xl rotate-y-12 hover:rotate-y-0 hover:scale-[1.02] transition-all duration-700 ease-out transform-gpu">
-                   {/* Card Header */}
                    <div className="flex items-center justify-between mb-12">
                       <div className="flex items-center gap-4">
                         <div className="h-12 w-12 bg-primary text-primary-foreground rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
@@ -276,14 +260,12 @@ export default function LandingPage() {
                       </div>
                    </div>
 
-                   {/* Card Body - Abstract Data Lines */}
                    <div className="space-y-4 mb-12">
                       <div className="h-2 w-3/4 bg-gradient-to-r from-muted to-transparent rounded-full" />
                       <div className="h-2 w-1/2 bg-gradient-to-r from-muted to-transparent rounded-full" />
                       <div className="h-2 w-full bg-gradient-to-r from-muted to-transparent rounded-full" />
                    </div>
 
-                   {/* Card Footer - Stats */}
                    <div className="grid grid-cols-2 gap-4">
                       <div className="p-4 bg-background/50 rounded-2xl border border-white/10 text-center hover:bg-background/80 transition-colors">
                         <div className="text-2xl font-bold text-primary">100%</div>
@@ -301,7 +283,6 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* 5. Marquees */}
         <LogoMarquee 
           title="Trusted by Healthcare Leaders" 
           items={["MediCare+", "HealthCorp", "Global Pharma", "UniClinic", "BioLabs", "Future Med", "Zenith Care", "Apex Health"]}
@@ -316,7 +297,6 @@ export default function LandingPage() {
 
       </main>
       
-      {/* 6. Footer */}
       <footer className="py-16 px-6 border-t border-border bg-card">
         <div className="container mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center gap-8">
