@@ -3,7 +3,7 @@ import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { sepolia } from 'viem/chains'
 
 // *** IMPORTANT: REPLACE THIS WITH YOUR NEW DEPLOYED CONTRACT ADDRESS ***
-export const VITALIS_CONTRACT_ADDRESS = "0x8E76bB29bC637c8e21E91dAdD3EAA7d967Ec0b1F" 
+export const VITALIS_CONTRACT_ADDRESS = "0x36B008c1615EB5285eC10c4B02d9203d7d7Ee010" 
 
 export const VITALIS_ABI = [
   // --- Identity & Records Functions ---
