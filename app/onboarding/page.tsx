@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { supabase } from "@/lib/supabase"
 import { registerDIDOnChain, VITALIS_CONTRACT_ADDRESS, VITALIS_ABI } from "@/lib/web3"
-import { createPublicClient, http } from 'viem'
+import { createPublicClient, http, getAddress } from 'viem'
 import { sepolia } from 'viem/chains'
 import Image from "next/image"
 
@@ -81,6 +81,20 @@ export default function OnboardingPage() {
     setStep(step + 1)
   }
 
+  const generateDID = async () => {
+    const dataString = `${formData.firstName}${formData.lastName}${formData.dob}${formData.email}${formData.address}`.toLowerCase().trim()
+    
+    const encoder = new TextEncoder()
+    const dataBuffer = encoder.encode(dataString)
+    const hashBuffer = await crypto.subtle.digest("SHA-256", dataBuffer)
+    const hashArray = Array.from(new Uint8Array(hashBuffer))
+    const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("")
+    
+    const rawAddress = `0x${hashHex.substring(0, 40)}`
+    
+    return getAddress(rawAddress)
+  }
+
   const handleSubmit = async () => {
     if (!user?.wallet?.address) return;
     
@@ -101,10 +115,11 @@ export default function OnboardingPage() {
     const provider = await activeWallet.getEthereumProvider();
 
     setIsLoading(true)
-    setStatusText("Verifying Identity...")
+    setStatusText("Generating DID...")
 
     try {
-      let didAddress = user.wallet.address
+      const didAddress = await generateDID()
+      console.log("Generated DID:", didAddress)
 
       const publicClient = createPublicClient({ 
         chain: sepolia, 
@@ -112,6 +127,8 @@ export default function OnboardingPage() {
       })
 
       let isRegistered = false
+      setStatusText("Verifying Identity...")
+      
       try {
         const existingDID = await publicClient.readContract({
           address: VITALIS_CONTRACT_ADDRESS as `0x${string}`,
@@ -123,7 +140,10 @@ export default function OnboardingPage() {
         if (existingDID && existingDID !== "0x0000000000000000000000000000000000000000") {
           console.log("User already registered on-chain.")
           isRegistered = true
-          setStatusText("Syncing Profile...")
+          
+          if(existingDID.toLowerCase() !== didAddress.toLowerCase()) {
+             console.warn("Registered DID differs from generated DID. Using existing registration.")
+          }
         }
       } catch (err) {
         console.log("User not registered on-chain yet.")
@@ -131,7 +151,7 @@ export default function OnboardingPage() {
 
       if (!isRegistered) {
         setStatusText("Registering Identity...")
-        console.log("Registering DID:", didAddress)
+        console.log("Registering DID on-chain:", didAddress)
         
         setStatusText("Waiting for Signature...")
         const txHash = await registerDIDOnChain(didAddress, provider)
@@ -364,7 +384,7 @@ export default function OnboardingPage() {
             </div>
             <AlertDialogTitle className="text-2xl font-bold">Identity Verified</AlertDialogTitle>
             <AlertDialogDescription className="text-muted-foreground mt-2">
-              Your decentralized identity (DID) has been successfully minted on the blockchain.
+              Your decentralized identity (DID) has been successfully generated and minted on the blockchain.
             </AlertDialogDescription>
           </AlertDialogHeader>
 

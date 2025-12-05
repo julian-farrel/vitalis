@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
+import Image from "next/image"
 
 export default function DataConsentPage() {
   const { userData } = useUser()
@@ -142,7 +143,7 @@ export default function DataConsentPage() {
                  {activePermissions.map((hospital: any) => (
                    <div key={hospital?.id} className="flex items-center gap-4 p-4 rounded-xl border bg-card shadow-sm">
                       <Avatar className="h-10 w-10">
-                        <AvatarImage src={hospital?.logo_url} />
+                        <AvatarImage src={hospital?.logo_url || "/placeholder-logo.png"} />
                         <AvatarFallback>HP</AvatarFallback>
                       </Avatar>
                       <div>
@@ -166,7 +167,7 @@ export default function DataConsentPage() {
                 >
                   <CardHeader className="flex flex-row items-center gap-4 pb-2">
                     <Avatar className="h-12 w-12 border">
-                      <AvatarImage src={hospital.logo_url} className="object-contain" />
+                      <AvatarImage src={hospital.logo_url || "/placeholder-logo.png"} className="object-contain" />
                       <AvatarFallback>H</AvatarFallback>
                     </Avatar>
                     <div>
@@ -203,8 +204,23 @@ export default function DataConsentPage() {
 
               {bookingStep === "details" && selectedHospital && (
                 <div className="space-y-6 py-4">
-                  <div className="relative h-40 w-full rounded-lg bg-muted flex items-center justify-center">
-                    <Building2 className="h-16 w-16 text-muted-foreground/30" />
+                  {/* Updated Image Section */}
+                  <div className="relative h-48 w-full rounded-lg overflow-hidden bg-muted flex items-center justify-center">
+                    {selectedHospital.image_url ? (
+                      <Image 
+                        src={selectedHospital.image_url} 
+                        alt={selectedHospital.name} 
+                        fill 
+                        className="object-cover" 
+                      />
+                    ) : (
+                      <Image 
+                        src="/placeholder.jpg" 
+                        alt="Hospital Placeholder" 
+                        fill 
+                        className="object-cover opacity-80" 
+                      />
+                    )}
                   </div>
                   <p className="text-sm text-muted-foreground">{selectedHospital.description}</p>
                   <Button onClick={() => setBookingStep("doctors")} className="w-full">Book Appointment</Button>

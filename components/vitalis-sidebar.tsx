@@ -28,8 +28,15 @@ export function VitalisSidebar({ activeItem = "Home" }: VitalisSidebarProps) {
 
   const walletAddress = user?.wallet?.address
   
-  const formattedAddress = walletAddress 
-    ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-5)}`
+  const didAddress = (userData.didWalletAddress && userData.didWalletAddress !== "Not Created")
+    ? userData.didWalletAddress
+    : null
+
+  const displayAddress = didAddress || walletAddress
+  const addressLabel = didAddress ? "Vitalis ID:" : "Wallet:"
+
+  const formattedAddress = displayAddress 
+    ? `${displayAddress.slice(0, 6)}...${displayAddress.slice(-5)}`
     : "Connecting..."
 
   return (
@@ -74,10 +81,10 @@ export function VitalisSidebar({ activeItem = "Home" }: VitalisSidebarProps) {
 
           <Separator className="my-4 bg-blue-200" />
           <div className="flex items-center gap-2 text-sm">
-            <span className="text-muted-foreground font-medium">Wallet:</span>
+            <span className="text-muted-foreground font-medium">{addressLabel}</span>
             <span 
               className="text-blue-600 font-mono truncate cursor-help" 
-              title={walletAddress || "No wallet connected"}
+              title={displayAddress || "No wallet connected"}
             >
               {formattedAddress}
             </span>

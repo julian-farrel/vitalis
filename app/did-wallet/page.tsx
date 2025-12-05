@@ -6,16 +6,19 @@ import {
   Activity,
   Fingerprint,
   Wifi,
-  Server
+  Server,
+  Wallet
 } from "lucide-react"
 import { VitalisSidebar } from "@/components/vitalis-sidebar"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useUser } from "@/context/user-context"
+import { usePrivy } from "@privy-io/react-auth"
 
 export default function DIDWalletPage() {
   const { userData } = useUser()
+  const { user } = usePrivy()
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text)
@@ -105,6 +108,40 @@ export default function DIDWalletPage() {
                 </div>
               </CardContent>
             </Card>
+
+            <Card className="md:col-span-3 border-blue-100 bg-gradient-to-br from-blue-50/50 to-white">
+              <CardHeader className="pb-2">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <CardTitle className="text-blue-950">Connected Wallet</CardTitle>
+                    <CardDescription>The Ethereum wallet used to sign transactions and control your DID.</CardDescription>
+                  </div>
+                  <Badge variant="outline" className="border-blue-200 text-blue-700 bg-blue-50">
+                    Signer
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-4">
+                <div className="flex flex-col gap-4">
+                  <div className="p-4 rounded-lg bg-white border border-blue-100 shadow-sm flex items-center justify-between">
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Wallet Address</p>
+                      <code className="text-lg font-mono text-foreground font-semibold">
+                        {user?.wallet?.address || "Not connected"}
+                      </code>
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={() => handleCopy(user?.wallet?.address || "")}>
+                      <Copy className="h-4 w-4 text-muted-foreground" />
+                    </Button>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Wallet className="h-4 w-4 text-blue-500" />
+                    <span>Verified Signer for this Identity</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
           </div>
 
         </div>
