@@ -34,7 +34,7 @@ interface MedicalRecord {
   type: string
   date: string
   file_hash: string
-  tx_hash?: string // <--- Added optional tx_hash field
+  tx_hash?: string
   status: string
   file_path: string
 }
@@ -103,6 +103,16 @@ export default function MedicalRecordsPage() {
         toast({ title: "Wallet Error", description: "Please refresh the page.", variant: "destructive" })
         return;
     }
+
+    // --- FIX START ---
+    try {
+      await activeWallet.switchChain(11155111); // Force Sepolia
+    } catch (error) {
+      toast({ title: "Network Error", description: "Please switch to Sepolia network.", variant: "destructive" })
+      return;
+    }
+    // --- FIX END ---
+
     const provider = await activeWallet.getEthereumProvider();
 
     setIsUploading(true)
@@ -124,7 +134,6 @@ export default function MedicalRecordsPage() {
       setUploadStep("minting")
       const metadata = JSON.stringify({ name: docName, type: docType, date: docDate })
       
-      // <--- CHANGE: Capture the returned transaction hash --->
       const txHash = await addRecordToBlockchain(fileHash, metadata, provider)
 
       const newRecord = {
@@ -134,7 +143,7 @@ export default function MedicalRecordsPage() {
         date: docDate,
         file_path: fileName,
         file_hash: fileHash,
-        tx_hash: txHash, // <--- CHANGE: Save tx_hash to database
+        tx_hash: txHash,
         status: "Verified"
       }
 
@@ -379,7 +388,6 @@ export default function MedicalRecordsPage() {
                           </div>
                         </div>
                         <div className="text-right flex items-center gap-4">
-                          {/* <CHANGE> Render Etherscan Link if tx_hash exists, otherwise fallback to file hash display */}
                           {record.tx_hash ? (
                             <a 
                               href={`https://sepolia.etherscan.io/tx/${record.tx_hash}`}
@@ -406,9 +414,6 @@ export default function MedicalRecordsPage() {
                  </div>
               ) : <EmptyState />}
             </TabsContent>
-
-            {/* ... Repeated for other tabs (visit, lab, etc.) ... */}
-            {/* Note: You should apply the same JSX change inside the map() function for other tabs as well */}
 
             <TabsContent value="visit" className="mt-0">
               {getRecords('visit').length > 0 ? (

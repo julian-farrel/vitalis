@@ -31,7 +31,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { supabase } from "@/lib/supabase"
-// REMOVED generateHealthWallet import as it causes the logic mismatch
 import { registerDIDOnChain, VITALIS_CONTRACT_ADDRESS, VITALIS_ABI } from "@/lib/web3"
 import { createPublicClient, http } from 'viem'
 import { sepolia } from 'viem/chains'
@@ -92,16 +91,15 @@ export default function OnboardingPage() {
         return;
     }
 
-    // --- FIX: Force Chain Switch to Sepolia ---
+    // --- FIX START: Force Switch to Sepolia ---
     try {
-      // 11155111 is the Chain ID for Sepolia
-      await activeWallet.switchChain(11155111);
+      await activeWallet.switchChain(11155111); // 11155111 is Sepolia Chain ID
     } catch (error) {
       console.error("Failed to switch chain:", error);
-      alert("Please switch your wallet network to Sepolia manually to continue.");
+      alert("Please switch your wallet network to Sepolia manually.");
       return;
     }
-    // ------------------------------------------
+    // --- FIX END ---
 
     const provider = await activeWallet.getEthereumProvider();
 
@@ -109,10 +107,8 @@ export default function OnboardingPage() {
     setStatusText("Verifying Identity...")
 
     try {
-      // FIX: Use the connected wallet as the DID
       let didAddress = user.wallet.address
 
-      // 1. Check if user is ALREADY registered on-chain
       const publicClient = createPublicClient({ 
         chain: sepolia, 
         transport: http() 
@@ -127,7 +123,6 @@ export default function OnboardingPage() {
           account: user.wallet.address as `0x${string}`
         }) as string
         
-        // If returns a valid address (not 0x00...), they are registered
         if (existingDID && existingDID !== "0x0000000000000000000000000000000000000000") {
           console.log("User already registered on-chain.")
           isRegistered = true
@@ -137,21 +132,17 @@ export default function OnboardingPage() {
         console.log("User not registered on-chain yet.")
       }
 
-      // 2. Register ONLY if not already registered
       if (!isRegistered) {
         setStatusText("Registering Identity...")
         console.log("Registering DID:", didAddress)
         
         setStatusText("Waiting for Signature...")
-        
-        // Pass the USER'S wallet address. This links msg.sender to the Patient record.
         const txHash = await registerDIDOnChain(didAddress, provider)
         console.log("Transaction confirmed:", txHash)
       }
 
       setStatusText("Saving Profile...")
 
-      // 3. Update Context
       updateUserData({
         firstName: formData.firstName,
         lastName: formData.lastName,
@@ -166,7 +157,6 @@ export default function OnboardingPage() {
         didWalletAddress: didAddress 
       })
 
-      // 4. Save to Supabase
       const { error } = await supabase
         .from('users')
         .upsert({
@@ -207,11 +197,8 @@ export default function OnboardingPage() {
 
   return (
     <div className="min-h-screen bg-background relative flex flex-col items-center justify-center p-4 md:p-8 overflow-hidden font-sans">
-      
-      {/* Background Decor */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[600px] bg-primary/5 blur-[120px] rounded-full pointer-events-none -z-10" />
 
-      {/* Brand Header */}
       <div className="absolute top-8 left-8 flex items-center gap-2.5 opacity-80 hover:opacity-100 transition-opacity">
          <div className="relative h-8 w-8 overflow-hidden rounded-lg bg-primary/20">
             <Image 
@@ -225,8 +212,6 @@ export default function OnboardingPage() {
       </div>
 
       <div className="w-full max-w-3xl animate-in fade-in zoom-in-95 duration-700">
-        
-        {/* Progress Indicator */}
         <div className="mb-8 flex items-center justify-between px-2">
           <div className="flex flex-col gap-1">
             <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-br from-foreground to-foreground/60 bg-clip-text text-transparent">
