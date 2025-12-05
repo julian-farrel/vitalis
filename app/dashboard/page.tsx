@@ -29,7 +29,6 @@ export default function DashboardPage() {
   const router = useRouter()
   const { userData } = useUser()
 
-  // Real data state
   const [recentRecords, setRecentRecords] = useState<any[]>([])
   const [upcomingAppointments, setUpcomingAppointments] = useState<any[]>([])
 
@@ -39,7 +38,6 @@ export default function DashboardPage() {
     }
   }, [ready, authenticated, router])
 
-  // Fetch recent records for the dashboard
   useEffect(() => {
     const fetchRecent = async () => {
       if (!userData.didWalletAddress) return;
@@ -83,7 +81,6 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* KPI Cards (Same as before) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
             <Card className="group relative overflow-hidden border-border/60 bg-card/50 backdrop-blur-sm hover:bg-card/80 transition-all hover:shadow-lg hover:-translate-y-1">
               <CardContent className="p-6">
@@ -153,10 +150,8 @@ export default function DashboardPage() {
             </Card>
           </div>
 
-          {/* Main Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            {/* Recent Medical Records */}
             <Card className="lg:col-span-2 border-border/60 bg-card/40 backdrop-blur-md shadow-sm h-full flex flex-col">
               <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-border/40">
                 <div className="space-y-1">
@@ -204,7 +199,6 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
-            {/* Upcoming Appointments */}
             <Card className="border-border/60 bg-card/40 backdrop-blur-md shadow-sm h-full flex flex-col">
               <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-border/40">
                 <div className="space-y-1">
@@ -228,14 +222,12 @@ export default function DashboardPage() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {/* Appointments map would go here */}
                   </div>
                 )}
               </CardContent>
             </Card>
           </div>
 
-          {/* Privacy Banner */}
           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/10 p-1">
             <div className="bg-card/40 backdrop-blur-sm rounded-xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="flex items-start gap-5">

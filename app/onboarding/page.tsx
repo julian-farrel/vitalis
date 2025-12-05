@@ -2,10 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-// UPDATE: Import useWallets
 import { usePrivy, useWallets } from "@privy-io/react-auth" 
 import { useUser } from "@/context/user-context"
-// ... keep existing imports ...
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -40,15 +38,17 @@ import Image from "next/image"
 
 export default function OnboardingPage() {
   const { ready, authenticated, user } = usePrivy()
-  const { wallets } = useWallets() // UPDATE: Get wallets
+  const { wallets } = useWallets()
   const { updateUserData } = useUser()
   const router = useRouter()
-  // ... rest of state setup ...
   const [step, setStep] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
   const [statusText, setStatusText] = useState("Complete Setup")
+  
+  // Success Popup State
   const [showSuccessDialog, setShowSuccessDialog] = useState(false)
   const [createdDID, setCreatedDID] = useState("")
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -63,7 +63,6 @@ export default function OnboardingPage() {
     conditions: ""
   })
 
-  // ... keep useEffect and input handlers ...
   useEffect(() => {
     if (ready && !authenticated) {
       router.push("/")
@@ -86,7 +85,7 @@ export default function OnboardingPage() {
   const handleSubmit = async () => {
     if (!user?.wallet?.address) return;
     
-    // UPDATE: Find the active wallet and get provider
+    // Get the provider from the connected wallet
     const activeWallet = wallets.find((w) => w.address === user.wallet?.address);
     if (!activeWallet) {
         alert("Wallet not found. Please refresh.");
@@ -131,14 +130,14 @@ export default function OnboardingPage() {
         console.log("New DID generated:", didAddress)
         
         setStatusText("Waiting for Signature...")
-        // UPDATE: Pass provider here
+        // Pass the provider to the function
         const txHash = await registerDIDOnChain(didAddress, provider)
         console.log("Transaction confirmed:", txHash)
       }
 
-      // ... Rest of the logic remains the same ...
       setStatusText("Saving Profile...")
 
+      // 3. Update Context
       updateUserData({
         firstName: formData.firstName,
         lastName: formData.lastName,
@@ -153,6 +152,7 @@ export default function OnboardingPage() {
         didWalletAddress: didAddress 
       })
 
+      // 4. Save to Supabase
       const { error } = await supabase
         .from('users')
         .upsert({
@@ -173,6 +173,7 @@ export default function OnboardingPage() {
 
       if (error) throw error
       
+      // 5. Show Success Dialog
       setCreatedDID(didAddress)
       setShowSuccessDialog(true)
 
@@ -193,7 +194,7 @@ export default function OnboardingPage() {
 
   return (
     <div className="min-h-screen bg-background relative flex flex-col items-center justify-center p-4 md:p-8 overflow-hidden font-sans">
-      {/* ... (Keep existing JSX exactly as is) ... */}
+      
       {/* Background Decor */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[600px] bg-primary/5 blur-[120px] rounded-full pointer-events-none -z-10" />
 
@@ -332,7 +333,7 @@ export default function OnboardingPage() {
                 <ArrowLeft className="mr-2 h-4 w-4" /> Previous
               </Button>
             ) : (
-              <div /> // Spacer
+              <div />
             )}
             
             <div className={step === 1 ? "w-full flex justify-end" : ""}>

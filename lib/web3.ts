@@ -2,8 +2,8 @@ import { createWalletClient, custom, publicActions } from 'viem'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { sepolia } from 'viem/chains'
 
-// *** IMPORTANT: REPLACE THIS WITH YOUR NEW DEPLOYED CONTRACT ADDRESS IF NEEDED ***
-export const VITALIS_CONTRACT_ADDRESS = "0x4f6194E931b71F26fFae366470D56Ee3C40dD134" 
+// *** IMPORTANT: REPLACE THIS WITH YOUR NEW DEPLOYED CONTRACT ADDRESS ***
+export const VITALIS_CONTRACT_ADDRESS = "0xb9704Ad2610bac66782c238e321159247f16a435" 
 
 export const VITALIS_ABI = [
   {
@@ -38,14 +38,13 @@ export const generateHealthWallet = () => {
   return { address: account.address, privateKey: privateKey }
 }
 
-// UPDATE: Add 'provider' argument
 export const registerDIDOnChain = async (didAddress: string, provider: any) => {
   if (!provider) throw new Error("No wallet provider found");
   
   try {
     const client = createWalletClient({
       chain: sepolia, 
-      transport: custom(provider) // Use the passed provider
+      transport: custom(provider)
     }).extend(publicActions)
 
     const [account] = await client.requestAddresses()
@@ -64,20 +63,17 @@ export const registerDIDOnChain = async (didAddress: string, provider: any) => {
   }
 }
 
-// UPDATE: Add 'provider' argument
 export const addRecordToBlockchain = async (recordHash: string, metadata: string, provider: any) => {
   if (!provider) throw new Error("No wallet provider found");
 
   const client = createWalletClient({
     chain: sepolia,
-    transport: custom(provider) // Use the passed provider
+    transport: custom(provider)
   }).extend(publicActions)
 
   const [account] = await client.requestAddresses()
 
   // 1. Check registration first to avoid RPC Error
-  // Note: We use readContract which doesn't strictly require the wallet client, 
-  // but sharing the client is fine here.
   const myDID = await client.readContract({
       address: VITALIS_CONTRACT_ADDRESS as `0x${string}`,
       abi: VITALIS_ABI,

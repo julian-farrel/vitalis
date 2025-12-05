@@ -1,10 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-// UPDATE: Import usePrivy AND useWallets
 import { usePrivy, useWallets } from "@privy-io/react-auth" 
 import { VitalisSidebar } from "@/components/vitalis-sidebar"
-// ... keep existing imports ...
 import { 
   FileText, 
   AlertCircle,
@@ -43,19 +41,16 @@ interface MedicalRecord {
 export default function MedicalRecordsPage() {
   const { userData } = useUser()
   const { toast } = useToast()
-  // UPDATE: get user and wallets
   const { user } = usePrivy()
   const { wallets } = useWallets()
   
   const [localRecords, setLocalRecords] = useState<MedicalRecord[]>([])
   const [isLoading, setIsLoading] = useState(true)
   
-  // Upload State
   const [isUploadOpen, setIsUploadOpen] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadStep, setUploadStep] = useState<"idle" | "hashing" | "uploading" | "minting" | "success">("idle")
   
-  // Form State
   const [file, setFile] = useState<File | null>(null)
   const [docName, setDocName] = useState("")
   const [docType, setDocType] = useState("visit")
@@ -102,10 +97,10 @@ export default function MedicalRecordsPage() {
        return
     }
 
-    // UPDATE: Find active wallet and provider
+    // Find the active wallet provider
     const activeWallet = wallets.find((w) => w.address === user?.wallet?.address);
     if (!activeWallet) {
-        toast({ title: "Wallet Error", description: "Active wallet not found. Please refresh.", variant: "destructive" })
+        toast({ title: "Wallet Error", description: "Please refresh the page.", variant: "destructive" })
         return;
     }
     const provider = await activeWallet.getEthereumProvider();
@@ -113,11 +108,9 @@ export default function MedicalRecordsPage() {
     setIsUploading(true)
     
     try {
-      // 1. Hash File
       setUploadStep("hashing")
       const fileHash = await computeSHA256(file)
 
-      // 2. Upload to Supabase Storage
       setUploadStep("uploading")
       const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_')
       const fileName = `${userData.didWalletAddress}/${Date.now()}_${cleanFileName}`
@@ -128,14 +121,12 @@ export default function MedicalRecordsPage() {
 
       if (uploadError) throw new Error("Storage upload failed: " + uploadError.message)
 
-      // 3. Blockchain Transaction
       setUploadStep("minting")
       const metadata = JSON.stringify({ name: docName, type: docType, date: docDate })
       
-      // UPDATE: Pass provider to function
+      // Pass provider to blockchain function
       await addRecordToBlockchain(fileHash, metadata, provider)
 
-      // 4. Save Metadata to Database
       const newRecord = {
         user_wallet: userData.didWalletAddress,
         title: docName,
@@ -188,7 +179,6 @@ export default function MedicalRecordsPage() {
     return localRecords.filter(r => r.type === filterType);
   }
 
-  // ... (keep the EmptyState and rest of the return JSX exactly as is)
   const EmptyState = () => (
     <div className="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed rounded-xl bg-muted/20">
       <div className="p-4 bg-muted rounded-full mb-4">
@@ -210,8 +200,7 @@ export default function MedicalRecordsPage() {
 
       <main className="pl-64 w-full">
         <div className="flex flex-col gap-6 p-8 max-w-7xl mx-auto">
-          {/* ... (Rest of the JSX is identical to original file, simply use the original structure) ... */}
-          {/* Due to length I am not repeating the entire UI code, but ensure you keep the UI code from the original file I analyzed */}
+          
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">

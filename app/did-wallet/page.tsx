@@ -20,15 +20,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { useUser } from "@/context/user-context" // <--- Import Context
+import { useUser } from "@/context/user-context"
 
-// Empty arrays for now
 const credentials: any[] = []
 const activityLog: any[] = []
 
 export default function DIDWalletPage() {
   const [showSecret, setShowSecret] = useState(false)
-  const { userData } = useUser() // <--- Get User Data
+  const { userData } = useUser()
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text)
@@ -43,7 +42,6 @@ export default function DIDWalletPage() {
       <main className="pl-64 w-full">
         <div className="flex flex-col gap-8 p-8 max-w-7xl mx-auto">
           
-          {/* Header */}
           <div className="flex items-center gap-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-500/10">
               <Fingerprint className="h-6 w-6 text-indigo-600" />
@@ -54,7 +52,6 @@ export default function DIDWalletPage() {
             </div>
           </div>
 
-          {/* Top Row: Identity & System Status */}
           <div className="grid gap-6 md:grid-cols-3">
             
             <Card className="md:col-span-2 border-indigo-100 bg-gradient-to-br from-indigo-50/50 to-white">
@@ -74,7 +71,6 @@ export default function DIDWalletPage() {
                   <div className="p-4 rounded-lg bg-white border border-indigo-100 shadow-sm flex items-center justify-between">
                     <div className="space-y-1">
                       <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Public ID Number</p>
-                      {/* Display Dynamic DID Address */}
                       <code className="text-lg font-mono text-foreground font-semibold">
                         {userData.didWalletAddress || "Generating..."}
                       </code>
@@ -91,7 +87,6 @@ export default function DIDWalletPage() {
               </CardContent>
             </Card>
 
-            {/* ... Keep the rest of your Card components as they were ... */}
              <Card className="flex flex-col justify-between">
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-base">
@@ -124,7 +119,6 @@ export default function DIDWalletPage() {
             </Card>
           </div>
 
-          {/* ... Rest of the page (Credentials, Logs) ... */}
            <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold flex items-center gap-2">
@@ -147,7 +141,6 @@ export default function DIDWalletPage() {
 
            <div className="grid gap-6 lg:grid-cols-3">
             
-            {/* Private Secret Manager */}
             <Card className="border-destructive/20 lg:col-span-1">
               <CardHeader>
                 <CardTitle className="text-destructive flex items-center gap-2 text-base">
@@ -185,7 +178,6 @@ export default function DIDWalletPage() {
               </CardContent>
             </Card>
 
-            {/* System Log */}
             <Card className="lg:col-span-2">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-base">
