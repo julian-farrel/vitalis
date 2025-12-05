@@ -1,273 +1,305 @@
 "use client"
 
-import { useState } from "react"
-import { 
-  ShieldCheck, 
-  Users, 
-  FileKey,
-  Calendar,
-  History,
-  BellRing,
-  Check,
-  X,
-  AlertCircle
-} from "lucide-react"
+import { useState, useEffect } from "react"
+import { usePrivy, useWallets } from "@privy-io/react-auth"
 import { VitalisSidebar } from "@/components/vitalis-sidebar"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { supabase } from "@/lib/supabase"
+import { bookAppointmentOnChain } from "@/lib/web3"
+import { useUser } from "@/context/user-context"
+import { 
+  ShieldCheck, MapPin, Stethoscope, Calendar, Clock, 
+  Building2, User, Loader2
+} from "lucide-react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-
-// Initialize with empty arrays (Real data would be fetched here)
-const initialPermissions: any[] = []
-const initialRequests: any[] = []
-const initialHistory: any[] = []
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useToast } from "@/hooks/use-toast"
 
 export default function DataConsentPage() {
-  const [permissions, setPermissions] = useState(initialPermissions)
-  const [requests, setRequests] = useState(initialRequests)
-  const [history, setHistory] = useState(initialHistory)
+  const { userData } = useUser()
+  const { user } = usePrivy()
+  const { wallets } = useWallets()
+  const { toast } = useToast()
 
-  // Logic: Approve a Pending Request
-  const handleApprove = (request: any) => {
-    // 1. Remove from Pending
-    setRequests(prev => prev.filter(r => r.id !== request.id))
+  // Data State
+  const [hospitals, setHospitals] = useState<any[]>([])
+  const [activePermissions, setActivePermissions] = useState<any[]>([])
+  
+  // Booking Wizard State
+  const [selectedHospital, setSelectedHospital] = useState<any>(null)
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false)
+  const [doctors, setDoctors] = useState<any[]>([])
+  const [bookingStep, setBookingStep] = useState<"details" | "doctors" | "schedule" | "confirm">("details")
+  const [selectedDoctor, setSelectedDoctor] = useState<any>(null)
+  const [selectedDate, setSelectedDate] = useState("")
+  const [selectedTime, setSelectedTime] = useState("")
+  const [isProcessing, setIsProcessing] = useState(false)
 
-    // 2. Add to Active Permissions
-    const newPermission = {
-      id: request.id,
-      name: request.name,
-      role: request.role,
-      facility: request.facility,
-      scope: request.scope,
-      scopeType: request.scope.includes("Full") ? "full" : "limited",
-      avatar: request.avatar
+  useEffect(() => {
+    const fetchData = async () => {
+      // 1. Fetch Hospitals
+      const { data: hospitalData } = await supabase.from('hospitals').select('*')
+      if (hospitalData) setHospitals(hospitalData)
+
+      // 2. Fetch Permissions (Based on existing appointments)
+      if (userData.didWalletAddress) {
+        const { data: appData } = await supabase
+          .from('appointments')
+          .select('*, hospitals(*)')
+          .eq('patient_wallet', userData.didWalletAddress)
+        
+        if (appData) {
+          // Deduplicate hospitals
+          const uniqueHospitals = Array.from(new Set(appData.map(a => a.hospital_id)))
+            .map(id => appData.find(a => a.hospital_id === id)?.hospitals)
+          setActivePermissions(uniqueHospitals)
+        }
+      }
     }
-    setPermissions(prev => [newPermission, ...prev])
+    fetchData()
+  }, [userData.didWalletAddress])
 
-    // 3. Log to Blockchain History
-    addToHistory(request.name, "Approved")
+  const handleHospitalClick = async (hospital: any) => {
+    setSelectedHospital(hospital)
+    setBookingStep("details")
+    setIsDetailsOpen(true)
+    
+    const { data } = await supabase
+      .from('doctors')
+      .select('*')
+      .eq('hospital_id', hospital.id)
+    if (data) setDoctors(data)
   }
 
-  // Logic: Deny a Pending Request
-  const handleDeny = (request: any) => {
-    // 1. Remove from Pending
-    setRequests(prev => prev.filter(r => r.id !== request.id))
+  const handleBookAppointment = async () => {
+    if (!selectedDate || !selectedTime) return
 
-    // 2. Log to Blockchain History as Denied
-    addToHistory(request.name, "Denied")
-  }
+    setIsProcessing(true)
+    try {
+      const activeWallet = wallets.find((w) => w.address === user?.wallet?.address);
+      if (!activeWallet) throw new Error("Wallet not found");
+      const provider = await activeWallet.getEthereumProvider();
 
-  // Logic: Revoke an Active Permission
-  const handleRevoke = (id: number, name: string) => {
-    setPermissions(prev => prev.filter(p => p.id !== id))
-    addToHistory(name, "Revoked")
-  }
+      // 1. Execute Smart Contract
+      const txHash = await bookAppointmentOnChain(
+        selectedHospital.id,
+        selectedDoctor.id,
+        selectedDate,
+        selectedTime,
+        provider
+      )
 
-  // Helper to append history
-  const addToHistory = (entity: string, action: string) => {
-    const newLog = {
-      id: Date.now(),
-      entity: entity,
-      action: action,
-      date: new Date().toLocaleDateString("en-US", { month: 'short', day: 'numeric', year: 'numeric' }),
-      hash: "0x" + Math.random().toString(16).substr(2, 8) + "..."
+      // 2. Save to Database
+      const { error } = await supabase.from('appointments').insert({
+        patient_wallet: userData.didWalletAddress,
+        doctor_id: selectedDoctor.id,
+        hospital_id: selectedHospital.id,
+        appointment_date: selectedDate,
+        appointment_time: selectedTime,
+        status: "Confirmed",
+        tx_hash: txHash
+      })
+
+      if (error) throw error
+
+      toast({ title: "Success", description: "Appointment confirmed on blockchain!" })
+      setIsDetailsOpen(false)
+      
+      // Refresh permissions
+      if (!activePermissions.find(p => p.id === selectedHospital.id)) {
+        setActivePermissions(prev => [...prev, selectedHospital])
+      }
+    } catch (error: any) {
+      console.error(error)
+      toast({ title: "Error", description: error.message, variant: "destructive" })
+    } finally {
+      setIsProcessing(false)
     }
-    setHistory(prev => [newLog, ...prev])
   }
 
   return (
     <div className="flex min-h-screen w-full bg-background">
-      
       <VitalisSidebar activeItem="Data Consent" />
       
       <main className="pl-64 w-full">
         <div className="flex flex-col gap-8 p-8 max-w-7xl mx-auto">
           
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-                <ShieldCheck className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold tracking-tight">Data Consent</h1>
-                <p className="text-muted-foreground">Approve or deny access requests from healthcare providers.</p>
-              </div>
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+              <ShieldCheck className="h-6 w-6 text-primary" />
             </div>
-            {/* Notification Badge */}
-            <div className="flex items-center gap-2 px-4 py-2 bg-secondary rounded-full border border-border">
-              <BellRing className="h-4 w-4 text-orange-500" />
-              <span className="text-sm font-medium">{requests.length} Pending Requests</span>
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Data Consent & Booking</h1>
+              <p className="text-muted-foreground">Manage access and book appointments with verified providers.</p>
             </div>
           </div>
 
-          {/* SECTION 1: Pending Requests (The Action Center) */}
+          {/* Section 1: Active Permissions */}
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-orange-500" /> Pending Approvals
-            </h2>
-            
-            {requests.length === 0 ? (
-              <div className="p-8 border border-dashed rounded-xl text-center text-muted-foreground bg-muted/20">
-                No pending requests at this time.
-              </div>
-            ) : (
-              <div className="grid gap-6 md:grid-cols-2">
-                {requests.map((req) => (
-                  <Card key={req.id} className="border-orange-200 bg-orange-50/30 dark:bg-orange-950/10">
-                    <CardHeader className="pb-3">
-                      <div className="flex justify-between items-start">
-                        <div className="flex gap-4">
-                          <Avatar className="h-10 w-10 border bg-background">
-                            <AvatarFallback className="text-orange-600">{req.avatar}</AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <CardTitle className="text-base font-semibold">{req.name}</CardTitle>
-                            <CardDescription>{req.role} • {req.facility}</CardDescription>
-                          </div>
-                        </div>
-                        <Badge variant="outline" className="border-orange-200 text-orange-700 bg-white">
-                          Requested
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-3 pb-3">
-                      <div className="p-3 bg-background rounded-md border border-border/50 text-sm">
-                        <span className="font-medium text-muted-foreground">Reason: </span>
-                        {req.reason}
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                         <FileKey className="h-4 w-4" /> Requested Scope: 
-                         <span className="font-medium text-foreground">{req.scope}</span>
-                      </div>
-                    </CardContent>
-                    <CardFooter className="grid grid-cols-2 gap-3 pt-0">
-                      <Button 
-                        variant="outline" 
-                        className="w-full hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
-                        onClick={() => handleDeny(req)}
-                      >
-                        <X className="mr-2 h-4 w-4" /> Deny
-                      </Button>
-                      <Button 
-                        className="w-full bg-primary hover:bg-primary/90"
-                        onClick={() => handleApprove(req)}
-                      >
-                        <Check className="mr-2 h-4 w-4" /> Approve Access
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* SECTION 2: Active Permissions */}
-          <div>
-            <h2 className="mb-4 text-lg font-semibold text-foreground flex items-center gap-2">
-              <Users className="h-5 w-5 text-primary" /> Active Permissions
-            </h2>
-            
-            {permissions.length === 0 ? (
-               <div className="p-8 border border-dashed rounded-xl text-center text-muted-foreground bg-muted/20">
-                 No active permissions. Approving a request will list it here.
+             <h2 className="text-lg font-semibold">Active Permissions</h2>
+             {activePermissions.length === 0 ? (
+               <div className="p-6 border border-dashed rounded-xl text-center text-muted-foreground bg-muted/20">
+                 No healthcare providers currently have access to your data. Book an appointment to grant access.
                </div>
-            ) : (
-              <div className="grid gap-6 md:grid-cols-2">
-                {permissions.map((perm) => (
-                  <Card key={perm.id} className="flex flex-col justify-between shadow-sm border-border">
-                    <CardHeader className="flex flex-row items-start justify-between pb-2">
-                      <div className="flex gap-4">
-                        <Avatar className="h-10 w-10 border bg-muted">
-                          <AvatarFallback className="text-primary">{perm.avatar}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <CardTitle className="text-base font-semibold">{perm.name}</CardTitle>
-                          <CardDescription>{perm.role} • {perm.facility}</CardDescription>
-                        </div>
+             ) : (
+               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                 {activePermissions.map((hospital: any) => (
+                   <div key={hospital?.id} className="flex items-center gap-4 p-4 rounded-xl border bg-card shadow-sm">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={hospital?.logo_url} />
+                        <AvatarFallback>HP</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-semibold">{hospital?.name}</p>
+                        <Badge variant="secondary" className="bg-emerald-100 text-emerald-700">Authorized</Badge>
                       </div>
-                      <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-600">
-                        Active
-                      </Badge>
-                    </CardHeader>
-                    
-                    <CardContent className="space-y-4">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground flex items-center gap-2">
-                          <FileKey className="h-4 w-4" /> Scope
-                        </span>
-                        <Badge variant="outline" className={perm.scopeType === 'full' ? "border-indigo-200 bg-indigo-50 text-indigo-700" : "border-orange-200 bg-orange-50 text-orange-700"}>
-                          {perm.scope}
-                        </Badge>
-                      </div>
-                    </CardContent>
-
-                    <CardFooter className="pt-2">
-                      <Button 
-                        variant="destructive" 
-                        className="w-full" 
-                        onClick={() => handleRevoke(perm.id, perm.name)}
-                      >
-                        Revoke Consent
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                ))}
-              </div>
-            )}
+                   </div>
+                 ))}
+               </div>
+             )}
           </div>
 
-          {/* SECTION 3: History Log */}
-          <Card className="border-border mt-4">
-            <CardHeader className="border-b bg-muted/20 pb-4">
-              <div className="flex items-center gap-2">
-                <History className="h-5 w-5 text-muted-foreground" />
-                <div>
-                  <CardTitle className="text-lg">Audit Log</CardTitle>
-                  <CardDescription>Immutable record of all your approval and denial actions.</CardDescription>
+          {/* Section 2: Hospital Listing */}
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold">Verified Healthcare Partners</h2>
+            <div className="grid gap-6 md:grid-cols-3">
+              {hospitals.map((hospital) => (
+                <Card 
+                  key={hospital.id} 
+                  className="group cursor-pointer hover:border-primary/50 transition-all hover:shadow-md"
+                  onClick={() => handleHospitalClick(hospital)}
+                >
+                  <CardHeader className="flex flex-row items-center gap-4 pb-2">
+                    <Avatar className="h-12 w-12 border">
+                      <AvatarImage src={hospital.logo_url} className="object-contain" />
+                      <AvatarFallback>H</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <CardTitle className="text-base">{hospital.name}</CardTitle>
+                      <CardDescription className="flex items-center gap-1 text-xs mt-1">
+                         <MapPin className="h-3 w-3" /> {hospital.address.split(',')[0]}
+                      </CardDescription>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground line-clamp-2">{hospital.description}</p>
+                  </CardContent>
+                  <CardFooter className="pt-0">
+                    <Button variant="ghost" className="w-full group-hover:bg-primary group-hover:text-primary-foreground">
+                      View Details & Book
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          </div>
+
+          {/* Booking Wizard Modal */}
+          <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+            <DialogContent className="sm:max-w-[600px]">
+              <DialogHeader>
+                <div className="flex items-center gap-2">
+                   {bookingStep !== "details" && (
+                     <Button variant="ghost" size="sm" onClick={() => setBookingStep("details")} className="h-6 px-2">Back</Button>
+                   )}
+                   <DialogTitle>{selectedHospital?.name}</DialogTitle>
                 </div>
-              </div>
-            </CardHeader>
-            <CardContent className="p-0">
-               {history.length === 0 ? (
-                 <div className="p-8 text-center text-muted-foreground text-sm">No activity logs found.</div>
-               ) : (
-                 <div className="relative w-full overflow-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b bg-muted/30 text-left text-muted-foreground">
-                        <th className="p-4 font-medium">Entity</th>
-                        <th className="p-4 font-medium">Action</th>
-                        <th className="p-4 font-medium">Date</th>
-                        <th className="p-4 font-medium text-right">Transaction ID</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y">
-                      {history.map((log) => (
-                        <tr key={log.id} className="hover:bg-muted/50 transition-colors">
-                          <td className="p-4 font-medium">{log.entity}</td>
-                          <td className="p-4">
-                            {/* Status badges would go here */}
-                            {log.action}
-                          </td>
-                          <td className="p-4 text-muted-foreground flex items-center gap-2">
-                            <Calendar className="h-3 w-3" />
-                            {log.date}
-                          </td>
-                          <td className="p-4 text-right">
-                             <code className="bg-muted px-2 py-1 rounded text-xs font-mono text-muted-foreground">
-                               {log.hash}
-                             </code>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                 </div>
-               )}
-            </CardContent>
-          </Card>
+                <DialogDescription>{selectedHospital?.address}</DialogDescription>
+              </DialogHeader>
+
+              {/* Step 1: Hospital Info */}
+              {bookingStep === "details" && selectedHospital && (
+                <div className="space-y-6 py-4">
+                  <div className="relative h-40 w-full rounded-lg bg-muted flex items-center justify-center">
+                    <Building2 className="h-16 w-16 text-muted-foreground/30" />
+                  </div>
+                  <p className="text-sm text-muted-foreground">{selectedHospital.description}</p>
+                  <Button onClick={() => setBookingStep("doctors")} className="w-full">Book Appointment</Button>
+                </div>
+              )}
+
+              {/* Step 2: Choose Doctor */}
+              {bookingStep === "doctors" && (
+                <div className="space-y-4 py-2">
+                  <h3 className="font-semibold text-sm">Select a Specialist</h3>
+                  <div className="grid gap-3 max-h-[300px] overflow-y-auto pr-2">
+                    {doctors.map((doc) => (
+                      <div 
+                        key={doc.id}
+                        className="flex items-center justify-between p-3 rounded-lg border hover:bg-accent cursor-pointer"
+                        onClick={() => { setSelectedDoctor(doc); setBookingStep("schedule"); }}
+                      >
+                         <div className="flex items-center gap-3">
+                           <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                             <User className="h-5 w-5" />
+                           </div>
+                           <div>
+                             <p className="font-medium text-sm">{doc.name}</p>
+                             <p className="text-xs text-muted-foreground">{doc.specialty}</p>
+                           </div>
+                         </div>
+                         <Badge variant="secondary">{doc.price}</Badge>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Step 3: Schedule */}
+              {bookingStep === "schedule" && selectedDoctor && (
+                <div className="space-y-6 py-2">
+                   <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
+                      <Stethoscope className="h-5 w-5 text-primary" />
+                      <div>
+                        <p className="text-sm font-medium">Booking with {selectedDoctor.name}</p>
+                        <p className="text-xs text-muted-foreground">{selectedDoctor.specialty}</p>
+                      </div>
+                   </div>
+                   <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Date</Label>
+                        <Input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Time</Label>
+                        <Select onValueChange={setSelectedTime}>
+                           <SelectTrigger><SelectValue placeholder="Select time" /></SelectTrigger>
+                           <SelectContent>
+                             {['09:00', '10:00', '11:00', '13:00', '14:00', '15:00'].map(t => (
+                               <SelectItem key={t} value={t}>{t}</SelectItem>
+                             ))}
+                           </SelectContent>
+                        </Select>
+                      </div>
+                   </div>
+                   <Button className="w-full" onClick={() => setBookingStep("confirm")} disabled={!selectedDate || !selectedTime}>Continue</Button>
+                </div>
+              )}
+
+              {/* Step 4: Confirm */}
+              {bookingStep === "confirm" && (
+                <div className="space-y-6 py-4 text-center">
+                   <div className="bg-muted/40 p-4 rounded-xl text-left space-y-3 border">
+                      <div className="flex justify-between text-sm"><span className="text-muted-foreground">Provider</span><span className="font-medium">{selectedHospital.name}</span></div>
+                      <div className="flex justify-between text-sm"><span className="text-muted-foreground">Doctor</span><span className="font-medium">{selectedDoctor.name}</span></div>
+                      <div className="flex justify-between text-sm"><span className="text-muted-foreground">Date & Time</span><span className="font-medium">{selectedDate} at {selectedTime}</span></div>
+                   </div>
+                   <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg text-xs text-amber-800 text-left flex gap-2">
+                     <Clock className="h-4 w-4 shrink-0" />
+                     Confirming will record this consent on the blockchain.
+                   </div>
+                   <Button className="w-full" onClick={handleBookAppointment} disabled={isProcessing}>
+                     {isProcessing ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Confirming...</> : "Confirm & Pay"}
+                   </Button>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
 
         </div>
       </main>
