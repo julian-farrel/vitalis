@@ -29,7 +29,7 @@ export default function DataConsentPage() {
 
   const [hospitals, setHospitals] = useState<any[]>([])
   const [activePermissions, setActivePermissions] = useState<any[]>([])
-  const [bookingHistory, setBookingHistory] = useState<any[]>([]) // State for history
+  const [bookingHistory, setBookingHistory] = useState<any[]>([]) 
   
   const [selectedHospital, setSelectedHospital] = useState<any>(null)
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
@@ -61,7 +61,7 @@ export default function DataConsentPage() {
           .from('appointments')
           .select('*, hospitals(name, logo_url), doctors(name, specialty)')
           .eq('patient_wallet', userData.didWalletAddress)
-          .order('created_at', { ascending: false })
+          .order('created_at', { ascending: false }) 
 
         if (historyData) setBookingHistory(historyData)
       }
@@ -206,7 +206,10 @@ export default function DataConsentPage() {
                     <p className="text-sm text-muted-foreground line-clamp-2">{hospital.description}</p>
                   </CardContent>
                   <CardFooter className="pt-0">
-                    <Button variant="ghost" className="w-full group-hover:bg-primary group-hover:text-primary-foreground">
+                    <Button 
+                      variant="outline" 
+                      className="w-full border-primary/20 text-primary bg-primary/5 group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary transition-all duration-300"
+                    >
                       View Details & Book
                     </Button>
                   </CardFooter>
@@ -215,6 +218,7 @@ export default function DataConsentPage() {
             </div>
           </div>
 
+          {/* Booking History Section */}
           <div className="space-y-4 pt-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold flex items-center gap-2">
