@@ -16,6 +16,17 @@ import { Label } from "@/components/ui/label"
 import { usePrivy } from "@privy-io/react-auth"
 import { useRouter } from "next/navigation"
 import { useUser } from "@/context/user-context"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 export default function SettingsPage() {
   const { logout } = usePrivy()
@@ -91,13 +102,31 @@ export default function SettingsPage() {
                   <p className="text-sm text-muted-foreground">This will lock your local vault and prevent further signing.</p>
                 </div>
              </div>
-             <Button 
-                variant="destructive" 
-                className="gap-2 transition-all duration-300 shadow-sm hover:scale-105 hover:shadow-lg hover:bg-red-600"
-                onClick={handleDisconnect}
-             >
-                <LogOut className="h-4 w-4" /> Disconnect
-             </Button>
+
+             <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button 
+                      variant="destructive" 
+                      className="gap-2 transition-all duration-300 shadow-sm hover:scale-105 hover:shadow-lg hover:bg-red-600"
+                  >
+                      <LogOut className="h-4 w-4" /> Disconnect
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action will disconnect your wallet from Vitalis. You will need to reconnect to access your medical records and dashboard.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDisconnect} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      Yes, Disconnect
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+             </AlertDialog>
           </div>
 
         </div>

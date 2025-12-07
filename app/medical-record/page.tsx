@@ -14,7 +14,7 @@ import {
   ExternalLink,
   Pill,
   Activity,
-  Search
+  Pencil
 } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
@@ -23,6 +23,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
 import { useUser } from "@/context/user-context"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/lib/supabase"
@@ -40,7 +41,7 @@ interface MedicalRecord {
 }
 
 export default function MedicalRecordsPage() {
-  const { userData } = useUser()
+  const { userData, updateUserData } = useUser()
   const { toast } = useToast()
   const { user } = usePrivy()
   const { wallets } = useWallets()
@@ -48,6 +49,7 @@ export default function MedicalRecordsPage() {
   const [localRecords, setLocalRecords] = useState<MedicalRecord[]>([])
   const [isLoading, setIsLoading] = useState(true)
   
+  // Upload State
   const [isUploadOpen, setIsUploadOpen] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadStep, setUploadStep] = useState<"idle" | "hashing" | "uploading" | "minting" | "success">("idle")
@@ -56,6 +58,15 @@ export default function MedicalRecordsPage() {
   const [docName, setDocName] = useState("")
   const [docType, setDocType] = useState("visit")
   const [docDate, setDocDate] = useState("")
+
+  // Health Profile Edit State
+  const [isHealthProfileOpen, setIsHealthProfileOpen] = useState(false)
+  const [isUpdatingHealth, setIsUpdatingHealth] = useState(false)
+  const [healthFormData, setHealthFormData] = useState({
+    allergies: "",
+    medications: "",
+    conditions: ""
+  })
 
   useEffect(() => {
     const fetchRecords = async () => {
@@ -80,11 +91,51 @@ export default function MedicalRecordsPage() {
     fetchRecords()
   }, [userData.didWalletAddress])
 
+  // Sync form data when dialog opens
+  useEffect(() => {
+    if (isHealthProfileOpen) {
+      setHealthFormData({
+        allergies: userData.allergies !== "None" ? userData.allergies : "",
+        medications: userData.medications !== "None" ? userData.medications : "",
+        conditions: userData.conditions !== "None" ? userData.conditions : ""
+      })
+    }
+  }, [isHealthProfileOpen, userData])
+
   const computeSHA256 = async (file: File) => {
     const buffer = await file.arrayBuffer()
     const hashBuffer = await crypto.subtle.digest("SHA-256", buffer)
     const hashArray = Array.from(new Uint8Array(hashBuffer))
     return "0x" + hashArray.map((b) => b.toString(16).padStart(2, "0")).join("")
+  }
+
+  const handleUpdateHealthProfile = async () => {
+    setIsUpdatingHealth(true)
+    try {
+      const updates = {
+        allergies: healthFormData.allergies || "None",
+        medications: healthFormData.medications || "None",
+        conditions: healthFormData.conditions || "None"
+      }
+
+      if (user?.wallet?.address) {
+        const { error } = await supabase
+          .from('users')
+          .update(updates)
+          .eq('wallet_address', user.wallet.address)
+
+        if (error) throw error
+
+        updateUserData(updates)
+        toast({ title: "Profile Updated", description: "Your health summary has been updated successfully." })
+        setIsHealthProfileOpen(false)
+      }
+    } catch (error: any) {
+      console.error("Error updating profile:", error)
+      toast({ title: "Update Failed", description: error.message, variant: "destructive" })
+    } finally {
+      setIsUpdatingHealth(false)
+    }
   }
 
   const handleUpload = async () => {
@@ -209,6 +260,7 @@ export default function MedicalRecordsPage() {
       <main className="pl-64 w-full">
         <div className="flex flex-col gap-6 p-8 max-w-7xl mx-auto">
           
+          {/* Header Section */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
@@ -220,106 +272,160 @@ export default function MedicalRecordsPage() {
               </div>
             </div>
 
-            <Dialog open={isUploadOpen} onOpenChange={(open) => { if(!isUploading) setIsUploadOpen(open) }}>
-              <DialogTrigger asChild>
-                <Button className="gap-2 shadow-lg shadow-primary/20">
-                  <Plus className="h-4 w-4" /> Upload Document
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                  <DialogTitle>Upload Medical Record</DialogTitle>
-                  <DialogDescription>
-                    Your file will be encrypted, hashed (SHA-256), and linked to your DID.
-                  </DialogDescription>
-                </DialogHeader>
+            <div className="flex gap-2">
+              <Button variant="outline" className="gap-2" onClick={() => setIsHealthProfileOpen(true)}>
+                <Pencil className="h-4 w-4" /> Update Health Profile
+              </Button>
+              
+              <Dialog open={isUploadOpen} onOpenChange={(open) => { if(!isUploading) setIsUploadOpen(open) }}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2 shadow-lg shadow-primary/20">
+                    <Plus className="h-4 w-4" /> Upload Document
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[500px]">
+                  <DialogHeader>
+                    <DialogTitle>Upload Medical Record</DialogTitle>
+                    <DialogDescription>
+                      Your file will be encrypted, hashed (SHA-256), and linked to your DID.
+                    </DialogDescription>
+                  </DialogHeader>
 
-                {!isUploading && uploadStep === "idle" ? (
-                  <div className="grid gap-4 py-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="name">Document Name</Label>
-                      <Input id="name" placeholder="e.g. Blood Test Results" value={docName} onChange={(e) => setDocName(e.target.value)} />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
+                  {!isUploading && uploadStep === "idle" ? (
+                    <div className="grid gap-4 py-4">
                       <div className="grid gap-2">
-                        <Label htmlFor="type">Type</Label>
-                        <Select value={docType} onValueChange={setDocType}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="visit">Clinical Visit</SelectItem>
-                            <SelectItem value="lab">Lab Result</SelectItem>
-                            <SelectItem value="medication">Prescription</SelectItem>
-                            <SelectItem value="procedure">Surgery</SelectItem>
-                            <SelectItem value="scan">X-Ray/Scan</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <Label htmlFor="name">Document Name</Label>
+                        <Input id="name" placeholder="e.g. Blood Test Results" value={docName} onChange={(e) => setDocName(e.target.value)} />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="grid gap-2">
+                          <Label htmlFor="type">Type</Label>
+                          <Select value={docType} onValueChange={setDocType}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="visit">Clinical Visit</SelectItem>
+                              <SelectItem value="lab">Lab Result</SelectItem>
+                              <SelectItem value="medication">Prescription</SelectItem>
+                              <SelectItem value="procedure">Surgery</SelectItem>
+                              <SelectItem value="scan">X-Ray/Scan</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="grid gap-2">
+                          <Label htmlFor="date">Date Issued</Label>
+                          <Input id="date" type="date" value={docDate} onChange={(e) => setDocDate(e.target.value)} />
+                        </div>
                       </div>
                       <div className="grid gap-2">
-                        <Label htmlFor="date">Date Issued</Label>
-                        <Input id="date" type="date" value={docDate} onChange={(e) => setDocDate(e.target.value)} />
+                        <Label>Attachment (PDF)</Label>
+                        <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center gap-2 bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer relative">
+                          <input 
+                            type="file" 
+                            accept=".pdf" 
+                            className="absolute inset-0 opacity-0 cursor-pointer"
+                            onChange={(e) => setFile(e.target.files?.[0] || null)}
+                          />
+                          {file ? (
+                            <div className="flex items-center gap-2 text-primary font-medium">
+                              <File className="h-5 w-5" />
+                              {file.name}
+                            </div>
+                          ) : (
+                            <>
+                              <UploadCloud className="h-8 w-8 text-muted-foreground" />
+                              <span className="text-sm text-muted-foreground">Click to upload PDF</span>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
-                    <div className="grid gap-2">
-                      <Label>Attachment (PDF)</Label>
-                      <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center gap-2 bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer relative">
-                        <input 
-                          type="file" 
-                          accept=".pdf" 
-                          className="absolute inset-0 opacity-0 cursor-pointer"
-                          onChange={(e) => setFile(e.target.files?.[0] || null)}
-                        />
-                        {file ? (
-                          <div className="flex items-center gap-2 text-primary font-medium">
-                            <File className="h-5 w-5" />
-                            {file.name}
-                          </div>
-                        ) : (
-                          <>
-                            <UploadCloud className="h-8 w-8 text-muted-foreground" />
-                            <span className="text-sm text-muted-foreground">Click to upload PDF</span>
-                          </>
-                        )}
+                  ) : (
+                    <div className="py-12 flex flex-col items-center justify-center gap-4 text-center">
+                      {uploadStep === "success" ? (
+                        <div className="h-16 w-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center animate-in zoom-in">
+                          <CheckCircle2 className="h-8 w-8" />
+                        </div>
+                      ) : (
+                        <Loader2 className="h-12 w-12 text-primary animate-spin" />
+                      )}
+                      
+                      <div className="space-y-1">
+                        <h3 className="font-semibold text-lg">
+                          {uploadStep === "hashing" && "Encrypting & Hashing..."}
+                          {uploadStep === "uploading" && "Secure Uploading..."}
+                          {uploadStep === "minting" && "Blockchain Confirmation..."}
+                          {uploadStep === "success" && "Upload Complete!"}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          {uploadStep === "hashing" && "Generating SHA-256 integrity proof."}
+                          {uploadStep === "uploading" && "Storing file in encrypted vault."}
+                          {uploadStep === "minting" && "Please sign the wallet transaction."}
+                          {uploadStep === "success" && "Your record is now immutable."}
+                        </p>
                       </div>
                     </div>
-                  </div>
-                ) : (
-                  <div className="py-12 flex flex-col items-center justify-center gap-4 text-center">
-                    {uploadStep === "success" ? (
-                      <div className="h-16 w-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center animate-in zoom-in">
-                        <CheckCircle2 className="h-8 w-8" />
-                      </div>
-                    ) : (
-                      <Loader2 className="h-12 w-12 text-primary animate-spin" />
-                    )}
-                    
-                    <div className="space-y-1">
-                      <h3 className="font-semibold text-lg">
-                        {uploadStep === "hashing" && "Encrypting & Hashing..."}
-                        {uploadStep === "uploading" && "Secure Uploading..."}
-                        {uploadStep === "minting" && "Blockchain Confirmation..."}
-                        {uploadStep === "success" && "Upload Complete!"}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        {uploadStep === "hashing" && "Generating SHA-256 integrity proof."}
-                        {uploadStep === "uploading" && "Storing file in encrypted vault."}
-                        {uploadStep === "minting" && "Please sign the wallet transaction."}
-                        {uploadStep === "success" && "Your record is now immutable."}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                <DialogFooter>
-                  {!isUploading && (
-                    <Button onClick={handleUpload} className="w-full">Start Secure Upload</Button>
                   )}
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+
+                  <DialogFooter>
+                    {!isUploading && (
+                      <Button onClick={handleUpload} className="w-full">Start Secure Upload</Button>
+                    )}
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
 
+          {/* Health Profile Edit Dialog */}
+          <Dialog open={isHealthProfileOpen} onOpenChange={setIsHealthProfileOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Update Health Profile</DialogTitle>
+                <DialogDescription>
+                  Keep your critical medical information up to date for better care coordination.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="allergies">Allergies</Label>
+                  <Textarea 
+                    id="allergies" 
+                    placeholder="e.g. Penicillin, Peanuts, Latex..." 
+                    value={healthFormData.allergies} 
+                    onChange={(e) => setHealthFormData(prev => ({ ...prev, allergies: e.target.value }))} 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="medications">Current Medications</Label>
+                  <Textarea 
+                    id="medications" 
+                    placeholder="List active prescriptions..." 
+                    value={healthFormData.medications} 
+                    onChange={(e) => setHealthFormData(prev => ({ ...prev, medications: e.target.value }))} 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="conditions">Chronic Conditions</Label>
+                  <Textarea 
+                    id="conditions" 
+                    placeholder="e.g. Asthma, Diabetes..." 
+                    value={healthFormData.conditions} 
+                    onChange={(e) => setHealthFormData(prev => ({ ...prev, conditions: e.target.value }))} 
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsHealthProfileOpen(false)} disabled={isUpdatingHealth}>Cancel</Button>
+                <Button onClick={handleUpdateHealthProfile} disabled={isUpdatingHealth}>
+                  {isUpdatingHealth ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Save Changes"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Health Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2">
             <Card className="bg-red-50/50 border-red-100 dark:bg-red-950/10 dark:border-red-900/30">
               <CardHeader className="pb-2">
@@ -328,7 +434,7 @@ export default function MedicalRecordsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm font-medium">{userData.allergies || "None Reported"}</p>
+                <p className="text-sm font-medium whitespace-pre-wrap">{userData.allergies || "None Reported"}</p>
               </CardContent>
             </Card>
 
@@ -339,7 +445,7 @@ export default function MedicalRecordsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm font-medium">{userData.medications || "None Reported"}</p>
+                <p className="text-sm font-medium whitespace-pre-wrap">{userData.medications || "None Reported"}</p>
               </CardContent>
             </Card>
 
@@ -350,7 +456,7 @@ export default function MedicalRecordsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm font-medium">{userData.conditions || "None Reported"}</p>
+                <p className="text-sm font-medium whitespace-pre-wrap">{userData.conditions || "None Reported"}</p>
               </CardContent>
             </Card>
           </div>
