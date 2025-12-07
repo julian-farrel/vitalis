@@ -66,18 +66,14 @@ export default function DataConsentPage() {
       if (appData) {
         setBookingHistory(appData)
 
-        // FILTER LOGIC: Only show Active Permissions if they haven't been cancelled/revoked later
-        // 1. Identify valid appointments (Confirmed AND no newer cancellation log)
         const validAppointments = appData.filter((app) => {
             if (app.status !== 'Confirmed') return false;
 
-            // Check if a newer 'Cancelled' log exists for this specific appointment details
-            // OR if a newer 'Revoked' log exists for this hospital
             const isSuperseded = appData.some(other => {
                const isNewer = new Date(other.created_at) > new Date(app.created_at);
                
                const isMatchingCancellation = 
-                   other.status === 'Cancelled' && 
+                   (other.status === 'Cancelled' || other.status === 'Revoked') && 
                    other.hospital_id === app.hospital_id && 
                    other.doctor_id === app.doctor_id &&
                    other.appointment_date === app.appointment_date &&
@@ -93,7 +89,6 @@ export default function DataConsentPage() {
             return !isSuperseded;
         });
 
-        // 2. Extract unique hospitals from valid appointments
         const uniqueHospitalIds = Array.from(new Set(validAppointments.map(a => a.hospital_id)))
         
         const activePerms = uniqueHospitalIds.map(id => {
@@ -181,11 +176,8 @@ export default function DataConsentPage() {
           throw new Error("Active appointment not found on blockchain. It may already be cancelled.");
       }
 
-      // 1. Cancel on Chain
       const txHash = await cancelAppointmentOnChain(onChainId, provider)
 
-      // 2. INSERT NEW LOG (Status: Cancelled)
-      // We do NOT update the old row, keeping the history intact
       const { error } = await supabase
         .from('appointments')
         .insert({
@@ -196,14 +188,13 @@ export default function DataConsentPage() {
             appointment_time: appointment.appointment_time,
             status: 'Cancelled',
             tx_hash: txHash,
-            // Ensure created_at is strictly newer by letting DB set default or explicit
             created_at: new Date().toISOString() 
         })
 
       if (error) throw error
 
       toast({ title: "Cancelled", description: "Cancellation logged successfully." })
-      fetchData() // Refresh list (will show both Confirmed and Cancelled logs)
+      fetchData() 
 
     } catch (error: any) {
       console.error(error)
@@ -221,33 +212,51 @@ export default function DataConsentPage() {
       if (!activeWallet) throw new Error("Wallet not found");
       const provider = await activeWallet.getEthereumProvider();
 
-      // 1. Revoke on Chain
       const txHash = await revokeAccessOnChain(hospitalId, provider)
 
-      // 2. INSERT NEW LOG (Status: Revoked)
-      // Find one doctor/appointment to use as a template or generic?
-      // Better to insert a 'Revoked' log for the hospital. 
-      // We will grab the latest appointment details for this hospital to keep FK constraints satisfied if any
-      const relatedApp = bookingHistory.find(b => b.hospital_id === hospitalId);
-      
-      if (relatedApp) {
-          const { error } = await supabase
-            .from('appointments')
-            .insert({
+      const activeAppsForHospital = bookingHistory.filter(app => {
+          if (app.hospital_id !== hospitalId || app.status !== 'Confirmed') return false;
+          const hasNewerLog = bookingHistory.some(other => 
+             new Date(other.created_at) > new Date(app.created_at) &&
+             other.hospital_id === app.hospital_id &&
+             other.doctor_id === app.doctor_id &&
+             other.appointment_date === app.appointment_date &&
+             other.appointment_time === app.appointment_time
+          );
+          return !hasNewerLog;
+      });
+
+      if (activeAppsForHospital.length > 0) {
+          const updates = activeAppsForHospital.map(app => ({
+              patient_wallet: userData.didWalletAddress,
+              doctor_id: app.doctor_id,
+              hospital_id: hospitalId,
+              appointment_date: app.appointment_date,
+              appointment_time: app.appointment_time,
+              status: 'Cancelled',
+              tx_hash: txHash,
+              created_at: new Date().toISOString()
+          }));
+
+          const { error } = await supabase.from('appointments').insert(updates);
+          if (error) throw error
+      } else {
+          const genericDetails = bookingHistory.find(b => b.hospital_id === hospitalId);
+          if (genericDetails) {
+             await supabase.from('appointments').insert({
                 patient_wallet: userData.didWalletAddress,
-                doctor_id: relatedApp.doctor_id, // Reuse last doc or generic
+                doctor_id: genericDetails.doctor_id,
                 hospital_id: hospitalId,
-                appointment_date: relatedApp.appointment_date, // Reuse or today
-                appointment_time: relatedApp.appointment_time,
+                appointment_date: genericDetails.appointment_date,
+                appointment_time: genericDetails.appointment_time,
                 status: 'Revoked',
                 tx_hash: txHash,
                 created_at: new Date().toISOString()
-            })
-          
-          if (error) throw error
+             });
+          }
       }
 
-      toast({ title: "Access Revoked", description: "Revocation logged successfully." })
+      toast({ title: "Access Revoked", description: "All active permissions have been removed and appointments cancelled." })
       fetchData()
 
     } catch (error: any) {
@@ -389,7 +398,19 @@ export default function DataConsentPage() {
             ) : (
               <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
                 <div className="divide-y">
-                  {bookingHistory.map((booking) => (
+                  {bookingHistory.map((booking) => {
+                    const isSuperseded = bookingHistory.some(other => {
+                       const isNewer = new Date(other.created_at) > new Date(booking.created_at);
+                       const isSameApp = 
+                           other.hospital_id === booking.hospital_id && 
+                           other.doctor_id === booking.doctor_id &&
+                           other.appointment_date === booking.appointment_date &&
+                           other.appointment_time === booking.appointment_time;
+                       
+                       return isNewer && isSameApp;
+                    });
+
+                    return (
                     <div key={booking.id} className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-muted/30 transition-colors">
                       <div className="flex items-start gap-4">
                         <div className={`flex flex-col items-center justify-center h-14 w-14 rounded-xl border ${booking.status === 'Cancelled' || booking.status === 'Revoked' ? 'bg-muted text-muted-foreground border-border' : 'bg-primary/5 text-primary border-primary/10'}`}>
@@ -435,7 +456,7 @@ export default function DataConsentPage() {
                             {booking.status}
                           </Badge>
 
-                          {booking.status === 'Confirmed' && (
+                          {booking.status === 'Confirmed' && !isSuperseded && (
                              <AlertDialog>
                                <AlertDialogTrigger asChild>
                                   <Button 
@@ -469,7 +490,7 @@ export default function DataConsentPage() {
                         </div>
                       </div>
                     </div>
-                  ))}
+                  )})}
                 </div>
               </div>
             )}

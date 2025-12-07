@@ -57,11 +57,24 @@ export default function DashboardPage() {
         .from('appointments')
         .select('*, doctors(name, specialty), hospitals(name)')
         .eq('patient_wallet', userData.didWalletAddress)
-        .order('appointment_date', { ascending: true })
+        .order('created_at', { ascending: false })
 
       if (allApps) {
+        const latestStatusMap = new Map();
+
+        allApps.forEach(app => {
+            const key = `${app.hospital_id}-${app.doctor_id}-${app.appointment_date}-${app.appointment_time}`;
+            if (!latestStatusMap.has(key)) {
+                latestStatusMap.set(key, app);
+            }
+        });
+
+        const activeAppointments = Array.from(latestStatusMap.values())
+            .filter((app: any) => app.status === 'Confirmed')
+            .sort((a: any, b: any) => new Date(a.appointment_date).getTime() - new Date(b.appointment_date).getTime());
+
         const today = new Date().toISOString().split('T')[0]
-        const futureApps = allApps.filter(app => app.appointment_date >= today)
+        const futureApps = activeAppointments.filter((app: any) => app.appointment_date >= today)
         
         setFutureVisitsCount(futureApps.length)
         setUpcomingAppointments(futureApps.slice(0, 3)) 

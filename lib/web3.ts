@@ -2,7 +2,7 @@ import { createWalletClient, custom, publicActions } from 'viem'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { sepolia } from 'viem/chains'
 
-export const VITALIS_CONTRACT_ADDRESS = "0xe2fdd0A685024E302D7e32091aA45C6b2019058B" 
+export const VITALIS_CONTRACT_ADDRESS = "0x9A9669aD8C22A5F0DA9C1F5b25B04Ffbbef8C0b4" 
 
 export const VITALIS_ABI = [
   {
@@ -187,7 +187,6 @@ export const bookAppointmentOnChain = async (
 
   const [account] = await client.requestAddresses()
 
-  // Manual gas limit to skip estimateGas (prevents rate limit errors)
   const hash = await client.writeContract({
     account,
     address: VITALIS_CONTRACT_ADDRESS as `0x${string}`,
@@ -203,7 +202,6 @@ export const bookAppointmentOnChain = async (
 export const cancelAppointmentOnChain = async (appointmentId: bigint, provider: any) => {
   if (!provider) throw new Error("No wallet provider found");
   
-  // Validation to prevent "Transaction NaN" errors
   if (appointmentId === undefined || appointmentId === null) {
       throw new Error("Invalid Appointment ID: ID is missing.");
   }
@@ -215,7 +213,6 @@ export const cancelAppointmentOnChain = async (appointmentId: bigint, provider: 
 
   const [account] = await client.requestAddresses()
 
-  // Manual gas limit to skip estimateGas
   const hash = await client.writeContract({
     account,
     address: VITALIS_CONTRACT_ADDRESS as `0x${string}`,
@@ -231,7 +228,6 @@ export const cancelAppointmentOnChain = async (appointmentId: bigint, provider: 
 export const revokeAccessOnChain = async (hospitalId: number, provider: any) => {
   if (!provider) throw new Error("No wallet provider found");
 
-  // Validation to prevent "Transaction NaN" errors
   if (isNaN(hospitalId)) {
       throw new Error("Invalid Hospital ID: Value is NaN");
   }
@@ -243,7 +239,6 @@ export const revokeAccessOnChain = async (hospitalId: number, provider: any) => 
 
   const [account] = await client.requestAddresses()
 
-  // Manual gas limit to skip estimateGas
   const hash = await client.writeContract({
     account,
     address: VITALIS_CONTRACT_ADDRESS as `0x${string}`,
@@ -256,7 +251,6 @@ export const revokeAccessOnChain = async (hospitalId: number, provider: any) => 
   return hash;
 }
 
-// === HELPER FUNCTION ===
 export const getOnChainAppointmentId = async (
     hospitalId: number,
     doctorId: number,
@@ -273,7 +267,6 @@ export const getOnChainAppointmentId = async (
 
     const [account] = await client.requestAddresses()
 
-    // Read all appointments
     const appointments: any = await client.readContract({
         address: VITALIS_CONTRACT_ADDRESS as `0x${string}`,
         abi: VITALIS_ABI,
@@ -283,14 +276,12 @@ export const getOnChainAppointmentId = async (
 
     console.log("On-Chain Appointments Found:", appointments);
 
-    // Find matching active appointment
     const match = appointments.find((app: any) => {
         const appHospitalId = Number(app.hospitalId);
         const appDoctorId = Number(app.doctorId);
         
         const appDate = app.date.trim();
         const targetDate = date.trim();
-        // Handle "09:00:00" vs "09:00"
         const appTime = app.time.trim().slice(0, 5); 
         const targetTime = time.trim().slice(0, 5);
 
