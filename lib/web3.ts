@@ -2,7 +2,7 @@ import { createWalletClient, custom, publicActions } from 'viem'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { sepolia } from 'viem/chains'
 
-export const VITALIS_CONTRACT_ADDRESS = "0xE285792daa6483Afa007f1F3523c5Ca3d3a4A691" 
+export const VITALIS_CONTRACT_ADDRESS = "0x9C61233fF5168d6CFf66e5Db1797bE9E8C88AD8c" 
 
 export const VITALIS_ABI = [
   {
@@ -10,6 +10,20 @@ export const VITALIS_ABI = [
     "name": "registerPatient",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "address", "name": "_dependentDID", "type": "address" }],
+    "name": "registerDependent",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getDependents",
+    "outputs": [{ "internalType": "address[]", "name": "", "type": "address[]" }],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -29,7 +43,6 @@ export const VITALIS_ABI = [
     "stateMutability": "nonpayable",
     "type": "function"
   },
-  
   {
     "inputs": [
       { "internalType": "uint256", "name": "_hospitalId", "type": "uint256" },
@@ -98,6 +111,31 @@ export const registerDIDOnChain = async (didAddress: string, provider: any) => {
   }
 }
 
+export const registerDependentOnChain = async (dependentDID: string, provider: any) => {
+  if (!provider) throw new Error("No wallet provider found");
+  
+  try {
+    const client = createWalletClient({
+      chain: sepolia, 
+      transport: custom(provider)
+    }).extend(publicActions)
+
+    const [account] = await client.requestAddresses()
+
+    const hash = await client.writeContract({
+      account,
+      address: VITALIS_CONTRACT_ADDRESS as `0x${string}`,
+      abi: VITALIS_ABI,
+      functionName: 'registerDependent',
+      args: [dependentDID as `0x${string}`]
+    })
+    return hash
+  } catch (error) {
+    console.error("Smart Contract Error:", error)
+    throw error 
+  }
+}
+
 export const addRecordToBlockchain = async (recordHash: string, metadata: string, provider: any) => {
   if (!provider) throw new Error("No wallet provider found");
 
@@ -107,27 +145,6 @@ export const addRecordToBlockchain = async (recordHash: string, metadata: string
   }).extend(publicActions)
 
   const [account] = await client.requestAddresses()
-
-  const myDID = await client.readContract({
-      address: VITALIS_CONTRACT_ADDRESS as `0x${string}`,
-      abi: VITALIS_ABI,
-      functionName: 'getMyDID',
-      account: account
-  }) as string
-
-  if (!myDID || myDID === "0x0000000000000000000000000000000000000000") {
-      console.log("User not registered. Auto-registering now...")
-      const regHash = await client.writeContract({
-          account,
-          address: VITALIS_CONTRACT_ADDRESS as `0x${string}`,
-          abi: VITALIS_ABI,
-          functionName: 'registerPatient',
-          args: [account]
-      })
-     
-      await client.waitForTransactionReceipt({ hash: regHash })
-      console.log("Registration complete. Proceeding to add record...")
-  }
 
   const hash = await client.writeContract({
     account,
@@ -155,25 +172,6 @@ export const bookAppointmentOnChain = async (
   }).extend(publicActions)
 
   const [account] = await client.requestAddresses()
-
-  const myDID = await client.readContract({
-      address: VITALIS_CONTRACT_ADDRESS as `0x${string}`,
-      abi: VITALIS_ABI,
-      functionName: 'getMyDID',
-      account: account
-  }) as string
-
-   if (!myDID || myDID === "0x0000000000000000000000000000000000000000") {
-      console.log("User not registered. Auto-registering now...")
-      const regHash = await client.writeContract({
-          account,
-          address: VITALIS_CONTRACT_ADDRESS as `0x${string}`,
-          abi: VITALIS_ABI,
-          functionName: 'registerPatient',
-          args: [account]
-      })
-      await client.waitForTransactionReceipt({ hash: regHash })
-  }
 
   const hash = await client.writeContract({
     account,

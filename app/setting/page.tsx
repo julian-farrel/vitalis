@@ -27,6 +27,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { FamilyManager } from "@/components/family-manager" // [NEW] Import
 
 export default function SettingsPage() {
   const { logout } = usePrivy()
@@ -92,6 +93,16 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
           
+          <Card className="border-border">
+            <CardHeader>
+              <CardTitle>Family Guardian</CardTitle>
+              <CardDescription>Manage Decentralized IDs for your children or dependents.</CardDescription>
+            </CardHeader>
+            <CardContent>
+               <FamilyManager />
+            </CardContent>
+          </Card>
+
           <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-6 flex flex-col md:flex-row items-center justify-between gap-4 transition-all duration-300 hover:bg-destructive/10 hover:border-destructive/40">
              <div className="flex items-center gap-4">
                 <div className="p-3 bg-white rounded-full border border-destructive/10 shadow-sm">
