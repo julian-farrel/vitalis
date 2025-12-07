@@ -4,18 +4,18 @@ import { useState, useEffect } from "react"
 import { usePrivy, useWallets } from "@privy-io/react-auth"
 import { VitalisSidebar } from "@/components/vitalis-sidebar"
 import { supabase } from "@/lib/supabase"
-import { bookAppointmentOnChain, cancelAppointmentOnChain, revokeAccessOnChain } from "@/lib/web3"
+import { bookAppointmentOnChain, cancelAppointmentOnChain, revokeAccessOnChain, getOnChainAppointmentId } from "@/lib/web3"
 import { useUser } from "@/context/user-context"
 import { 
   ShieldCheck, MapPin, Stethoscope, Calendar, Clock, 
-  Building2, User, Loader2, History, ExternalLink, CheckCircle2,
+  User, Loader2, History, ExternalLink, CheckCircle2,
   ArrowLeft, XCircle, Ban
 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -66,6 +66,7 @@ export default function DataConsentPage() {
       if (appData) {
         setBookingHistory(appData)
 
+        // Filter for hospitals with at least one CONFIRMED appointment
         const activeApps = appData.filter(a => a.status === 'Confirmed')
         const uniqueHospitalIds = Array.from(new Set(activeApps.map(a => a.hospital_id)))
         
@@ -142,8 +143,24 @@ export default function DataConsentPage() {
       if (!activeWallet) throw new Error("Wallet not found");
       const provider = await activeWallet.getEthereumProvider();
 
-      await cancelAppointmentOnChain(appointment.id, provider)
+      // 1. Get the correct ID from Blockchain
+      // This helper now handles the 09:00 vs 09:00:00 time mismatch
+      const onChainId = await getOnChainAppointmentId(
+          appointment.hospital_id,
+          appointment.doctor_id,
+          appointment.appointment_date,
+          appointment.appointment_time,
+          provider
+      )
 
+      if (onChainId === null) {
+          throw new Error("Active appointment not found on blockchain. It may already be cancelled.");
+      }
+
+      // 2. Cancel using the ID
+      await cancelAppointmentOnChain(onChainId, provider)
+
+      // 3. Update Database
       const { error } = await supabase
         .from('appointments')
         .update({ status: 'Cancelled' })
@@ -155,7 +172,9 @@ export default function DataConsentPage() {
       fetchData()
     } catch (error: any) {
       console.error(error)
-      toast({ title: "Error", description: "Failed to cancel on-chain.", variant: "destructive" })
+      // Clean up error message for user
+      const msg = error.message.includes("User rejected") ? "Transaction rejected" : error.message;
+      toast({ title: "Error", description: msg, variant: "destructive" })
     } finally {
       setIsProcessing(false)
     }
@@ -170,6 +189,10 @@ export default function DataConsentPage() {
 
       await revokeAccessOnChain(hospitalId, provider)
 
+      // Optimistic Update: Remove card immediately from UI
+      // This fixes the "flicker" issue
+      setActivePermissions(prev => prev.filter(p => p.id !== hospitalId))
+
       const { error } = await supabase
         .from('appointments')
         .update({ status: 'Revoked' })
@@ -180,10 +203,14 @@ export default function DataConsentPage() {
       if (error) throw error
 
       toast({ title: "Access Revoked", description: "All active permissions for this provider have been removed." })
+      
+      // We still fetch data to sync, but the optimistic update makes it feel instant
       fetchData()
     } catch (error: any) {
       console.error(error)
       toast({ title: "Error", description: "Failed to revoke access on-chain.", variant: "destructive" })
+      // If error, re-fetch to restore the card
+      fetchData() 
     } finally {
       setIsProcessing(false)
     }
@@ -367,15 +394,35 @@ export default function DataConsentPage() {
                           </Badge>
 
                           {booking.status === 'Confirmed' && (
-                             <Button 
-                               variant="ghost" 
-                               size="sm" 
-                               className="h-6 px-2 text-xs text-muted-foreground hover:text-destructive"
-                               onClick={() => handleCancelAppointment(booking)}
-                               disabled={isProcessing}
-                             >
-                               <XCircle className="w-3 h-3 mr-1" /> Cancel
-                             </Button>
+                             <AlertDialog>
+                               <AlertDialogTrigger asChild>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="h-6 px-2 text-xs text-muted-foreground hover:text-destructive"
+                                    disabled={isProcessing}
+                                  >
+                                    <XCircle className="w-3 h-3 mr-1" /> Cancel
+                                  </Button>
+                               </AlertDialogTrigger>
+                               <AlertDialogContent>
+                                 <AlertDialogHeader>
+                                   <AlertDialogTitle>Cancel Appointment?</AlertDialogTitle>
+                                   <AlertDialogDescription>
+                                     Are you sure you want to cancel your appointment with <strong>Dr. {booking.doctors?.name}</strong> on {booking.appointment_date}? This action is irreversible and recorded on the blockchain.
+                                   </AlertDialogDescription>
+                                 </AlertDialogHeader>
+                                 <AlertDialogFooter>
+                                   <AlertDialogCancel>Keep Appointment</AlertDialogCancel>
+                                   <AlertDialogAction 
+                                      onClick={() => handleCancelAppointment(booking)}
+                                      className="bg-destructive hover:bg-destructive/90"
+                                   >
+                                     {isProcessing ? "Cancelling..." : "Yes, Cancel"}
+                                   </AlertDialogAction>
+                                 </AlertDialogFooter>
+                               </AlertDialogContent>
+                             </AlertDialog>
                           )}
                         </div>
                       </div>

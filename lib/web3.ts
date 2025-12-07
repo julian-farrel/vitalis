@@ -2,7 +2,7 @@ import { createWalletClient, custom, publicActions } from 'viem'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { sepolia } from 'viem/chains'
 
-export const VITALIS_CONTRACT_ADDRESS = "0x616E65710C077f06f0B013CF20f8Bf8dA652D368" 
+export const VITALIS_CONTRACT_ADDRESS = "0x7598493c3EE09694fb46bfB6c81A2963cEb5F8Ac" 
 
 export const VITALIS_ABI = [
   {
@@ -198,7 +198,7 @@ export const bookAppointmentOnChain = async (
   return hash;
 }
 
-export const cancelAppointmentOnChain = async (appointmentId: number, provider: any) => {
+export const cancelAppointmentOnChain = async (appointmentId: bigint, provider: any) => {
   if (!provider) throw new Error("No wallet provider found");
 
   const client = createWalletClient({
@@ -213,7 +213,7 @@ export const cancelAppointmentOnChain = async (appointmentId: number, provider: 
     address: VITALIS_CONTRACT_ADDRESS as `0x${string}`,
     abi: VITALIS_ABI,
     functionName: 'cancelAppointment',
-    args: [BigInt(appointmentId)]
+    args: [appointmentId]
   })
 
   return hash;
@@ -238,4 +238,48 @@ export const revokeAccessOnChain = async (hospitalId: number, provider: any) => 
   })
 
   return hash;
+}
+
+// === NEW HELPER FUNCTION ADDED HERE ===
+export const getOnChainAppointmentId = async (
+    hospitalId: number,
+    doctorId: number,
+    date: string,
+    time: string,
+    provider: any
+) => {
+    if (!provider) throw new Error("No wallet provider found");
+
+    const client = createWalletClient({
+        chain: sepolia,
+        transport: custom(provider)
+    }).extend(publicActions)
+
+    const [account] = await client.requestAddresses()
+
+    // Read all appointments for this user from Blockchain
+    const appointments: any = await client.readContract({
+        address: VITALIS_CONTRACT_ADDRESS as `0x${string}`,
+        abi: VITALIS_ABI,
+        functionName: 'getMyAppointments',
+        account: account
+    })
+
+    console.log("On-Chain Appointments Found:", appointments);
+    console.log("Searching for:", { hospitalId, doctorId, date, time });
+
+    // Find matching active appointment
+    // Important: We slice the DB time (09:00:00) to match Contract time (09:00)
+    const match = appointments.find((app: any) => {
+        const dbTimeShort = time.slice(0, 5); // "09:00:00" -> "09:00"
+        
+        return Number(app.hospitalId) === hospitalId &&
+               Number(app.doctorId) === doctorId &&
+               app.date === date &&
+               (app.time === time || app.time === dbTimeShort) && 
+               app.status === "Confirmed"
+    })
+
+    if (!match) return null;
+    return match.id; // Returns the BigInt ID required for the contract call
 }
