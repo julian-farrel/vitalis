@@ -66,12 +66,38 @@ export default function DataConsentPage() {
       if (appData) {
         setBookingHistory(appData)
 
-        // Filter for hospitals with at least one CONFIRMED appointment
-        const activeApps = appData.filter(a => a.status === 'Confirmed')
-        const uniqueHospitalIds = Array.from(new Set(activeApps.map(a => a.hospital_id)))
+        // FILTER LOGIC: Only show Active Permissions if they haven't been cancelled/revoked later
+        // 1. Identify valid appointments (Confirmed AND no newer cancellation log)
+        const validAppointments = appData.filter((app) => {
+            if (app.status !== 'Confirmed') return false;
+
+            // Check if a newer 'Cancelled' log exists for this specific appointment details
+            // OR if a newer 'Revoked' log exists for this hospital
+            const isSuperseded = appData.some(other => {
+               const isNewer = new Date(other.created_at) > new Date(app.created_at);
+               
+               const isMatchingCancellation = 
+                   other.status === 'Cancelled' && 
+                   other.hospital_id === app.hospital_id && 
+                   other.doctor_id === app.doctor_id &&
+                   other.appointment_date === app.appointment_date &&
+                   other.appointment_time === app.appointment_time;
+
+               const isHospitalRevoked = 
+                   other.status === 'Revoked' &&
+                   other.hospital_id === app.hospital_id;
+
+               return isNewer && (isMatchingCancellation || isHospitalRevoked);
+            });
+
+            return !isSuperseded;
+        });
+
+        // 2. Extract unique hospitals from valid appointments
+        const uniqueHospitalIds = Array.from(new Set(validAppointments.map(a => a.hospital_id)))
         
         const activePerms = uniqueHospitalIds.map(id => {
-           return appData.find(a => a.hospital_id === id)?.hospitals
+           return validAppointments.find(a => a.hospital_id === id)?.hospitals
         }).filter(Boolean)
         
         setActivePermissions(activePerms)
@@ -143,8 +169,6 @@ export default function DataConsentPage() {
       if (!activeWallet) throw new Error("Wallet not found");
       const provider = await activeWallet.getEthereumProvider();
 
-      // 1. Get the correct ID from Blockchain
-      // This helper now handles the 09:00 vs 09:00:00 time mismatch
       const onChainId = await getOnChainAppointmentId(
           appointment.hospital_id,
           appointment.doctor_id,
@@ -157,22 +181,32 @@ export default function DataConsentPage() {
           throw new Error("Active appointment not found on blockchain. It may already be cancelled.");
       }
 
-      // 2. Cancel using the ID
-      await cancelAppointmentOnChain(onChainId, provider)
+      // 1. Cancel on Chain
+      const txHash = await cancelAppointmentOnChain(onChainId, provider)
 
-      // 3. Update Database
+      // 2. INSERT NEW LOG (Status: Cancelled)
+      // We do NOT update the old row, keeping the history intact
       const { error } = await supabase
         .from('appointments')
-        .update({ status: 'Cancelled' })
-        .eq('id', appointment.id)
+        .insert({
+            patient_wallet: userData.didWalletAddress,
+            doctor_id: appointment.doctor_id,
+            hospital_id: appointment.hospital_id,
+            appointment_date: appointment.appointment_date,
+            appointment_time: appointment.appointment_time,
+            status: 'Cancelled',
+            tx_hash: txHash,
+            // Ensure created_at is strictly newer by letting DB set default or explicit
+            created_at: new Date().toISOString() 
+        })
 
       if (error) throw error
 
-      toast({ title: "Cancelled", description: "Appointment cancelled successfully." })
-      fetchData()
+      toast({ title: "Cancelled", description: "Cancellation logged successfully." })
+      fetchData() // Refresh list (will show both Confirmed and Cancelled logs)
+
     } catch (error: any) {
       console.error(error)
-      // Clean up error message for user
       const msg = error.message.includes("User rejected") ? "Transaction rejected" : error.message;
       toast({ title: "Error", description: msg, variant: "destructive" })
     } finally {
@@ -187,30 +221,38 @@ export default function DataConsentPage() {
       if (!activeWallet) throw new Error("Wallet not found");
       const provider = await activeWallet.getEthereumProvider();
 
-      await revokeAccessOnChain(hospitalId, provider)
+      // 1. Revoke on Chain
+      const txHash = await revokeAccessOnChain(hospitalId, provider)
 
-      // Optimistic Update: Remove card immediately from UI
-      // This fixes the "flicker" issue
-      setActivePermissions(prev => prev.filter(p => p.id !== hospitalId))
-
-      const { error } = await supabase
-        .from('appointments')
-        .update({ status: 'Revoked' })
-        .eq('hospital_id', hospitalId)
-        .eq('status', 'Confirmed')
-        .eq('patient_wallet', userData.didWalletAddress)
-
-      if (error) throw error
-
-      toast({ title: "Access Revoked", description: "All active permissions for this provider have been removed." })
+      // 2. INSERT NEW LOG (Status: Revoked)
+      // Find one doctor/appointment to use as a template or generic?
+      // Better to insert a 'Revoked' log for the hospital. 
+      // We will grab the latest appointment details for this hospital to keep FK constraints satisfied if any
+      const relatedApp = bookingHistory.find(b => b.hospital_id === hospitalId);
       
-      // We still fetch data to sync, but the optimistic update makes it feel instant
+      if (relatedApp) {
+          const { error } = await supabase
+            .from('appointments')
+            .insert({
+                patient_wallet: userData.didWalletAddress,
+                doctor_id: relatedApp.doctor_id, // Reuse last doc or generic
+                hospital_id: hospitalId,
+                appointment_date: relatedApp.appointment_date, // Reuse or today
+                appointment_time: relatedApp.appointment_time,
+                status: 'Revoked',
+                tx_hash: txHash,
+                created_at: new Date().toISOString()
+            })
+          
+          if (error) throw error
+      }
+
+      toast({ title: "Access Revoked", description: "Revocation logged successfully." })
       fetchData()
+
     } catch (error: any) {
       console.error(error)
       toast({ title: "Error", description: "Failed to revoke access on-chain.", variant: "destructive" })
-      // If error, re-fetch to restore the card
-      fetchData() 
     } finally {
       setIsProcessing(false)
     }
@@ -409,7 +451,7 @@ export default function DataConsentPage() {
                                  <AlertDialogHeader>
                                    <AlertDialogTitle>Cancel Appointment?</AlertDialogTitle>
                                    <AlertDialogDescription>
-                                     Are you sure you want to cancel your appointment with <strong>Dr. {booking.doctors?.name}</strong> on {booking.appointment_date}? This action is irreversible and recorded on the blockchain.
+                                     Are you sure you want to cancel your appointment with <strong>{booking.doctors?.name}</strong>? This action is irreversible and recorded on the blockchain.
                                    </AlertDialogDescription>
                                  </AlertDialogHeader>
                                  <AlertDialogFooter>

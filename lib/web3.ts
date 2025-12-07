@@ -2,7 +2,7 @@ import { createWalletClient, custom, publicActions } from 'viem'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { sepolia } from 'viem/chains'
 
-export const VITALIS_CONTRACT_ADDRESS = "0x7598493c3EE09694fb46bfB6c81A2963cEb5F8Ac" 
+export const VITALIS_CONTRACT_ADDRESS = "0xe2fdd0A685024E302D7e32091aA45C6b2019058B" 
 
 export const VITALIS_ABI = [
   {
@@ -187,12 +187,14 @@ export const bookAppointmentOnChain = async (
 
   const [account] = await client.requestAddresses()
 
+  // Manual gas limit to skip estimateGas (prevents rate limit errors)
   const hash = await client.writeContract({
     account,
     address: VITALIS_CONTRACT_ADDRESS as `0x${string}`,
     abi: VITALIS_ABI,
     functionName: 'bookAppointment',
-    args: [BigInt(hospitalId), BigInt(doctorId), date, time]
+    args: [BigInt(hospitalId), BigInt(doctorId), date, time],
+    gas: BigInt(500000) 
   })
 
   return hash;
@@ -200,6 +202,11 @@ export const bookAppointmentOnChain = async (
 
 export const cancelAppointmentOnChain = async (appointmentId: bigint, provider: any) => {
   if (!provider) throw new Error("No wallet provider found");
+  
+  // Validation to prevent "Transaction NaN" errors
+  if (appointmentId === undefined || appointmentId === null) {
+      throw new Error("Invalid Appointment ID: ID is missing.");
+  }
 
   const client = createWalletClient({
     chain: sepolia,
@@ -208,12 +215,14 @@ export const cancelAppointmentOnChain = async (appointmentId: bigint, provider: 
 
   const [account] = await client.requestAddresses()
 
+  // Manual gas limit to skip estimateGas
   const hash = await client.writeContract({
     account,
     address: VITALIS_CONTRACT_ADDRESS as `0x${string}`,
     abi: VITALIS_ABI,
     functionName: 'cancelAppointment',
-    args: [appointmentId]
+    args: [appointmentId],
+    gas: BigInt(500000)
   })
 
   return hash;
@@ -222,6 +231,11 @@ export const cancelAppointmentOnChain = async (appointmentId: bigint, provider: 
 export const revokeAccessOnChain = async (hospitalId: number, provider: any) => {
   if (!provider) throw new Error("No wallet provider found");
 
+  // Validation to prevent "Transaction NaN" errors
+  if (isNaN(hospitalId)) {
+      throw new Error("Invalid Hospital ID: Value is NaN");
+  }
+
   const client = createWalletClient({
     chain: sepolia,
     transport: custom(provider)
@@ -229,18 +243,20 @@ export const revokeAccessOnChain = async (hospitalId: number, provider: any) => 
 
   const [account] = await client.requestAddresses()
 
+  // Manual gas limit to skip estimateGas
   const hash = await client.writeContract({
     account,
     address: VITALIS_CONTRACT_ADDRESS as `0x${string}`,
     abi: VITALIS_ABI,
     functionName: 'revokeAccess',
-    args: [BigInt(hospitalId)]
+    args: [BigInt(hospitalId)],
+    gas: BigInt(3000000) 
   })
 
   return hash;
 }
 
-// === NEW HELPER FUNCTION ADDED HERE ===
+// === HELPER FUNCTION ===
 export const getOnChainAppointmentId = async (
     hospitalId: number,
     doctorId: number,
@@ -257,7 +273,7 @@ export const getOnChainAppointmentId = async (
 
     const [account] = await client.requestAddresses()
 
-    // Read all appointments for this user from Blockchain
+    // Read all appointments
     const appointments: any = await client.readContract({
         address: VITALIS_CONTRACT_ADDRESS as `0x${string}`,
         abi: VITALIS_ABI,
@@ -266,20 +282,25 @@ export const getOnChainAppointmentId = async (
     })
 
     console.log("On-Chain Appointments Found:", appointments);
-    console.log("Searching for:", { hospitalId, doctorId, date, time });
 
     // Find matching active appointment
-    // Important: We slice the DB time (09:00:00) to match Contract time (09:00)
     const match = appointments.find((app: any) => {
-        const dbTimeShort = time.slice(0, 5); // "09:00:00" -> "09:00"
+        const appHospitalId = Number(app.hospitalId);
+        const appDoctorId = Number(app.doctorId);
         
-        return Number(app.hospitalId) === hospitalId &&
-               Number(app.doctorId) === doctorId &&
-               app.date === date &&
-               (app.time === time || app.time === dbTimeShort) && 
+        const appDate = app.date.trim();
+        const targetDate = date.trim();
+        // Handle "09:00:00" vs "09:00"
+        const appTime = app.time.trim().slice(0, 5); 
+        const targetTime = time.trim().slice(0, 5);
+
+        return appHospitalId === hospitalId &&
+               appDoctorId === doctorId &&
+               appDate === targetDate &&
+               appTime === targetTime &&
                app.status === "Confirmed"
     })
 
     if (!match) return null;
-    return match.id; // Returns the BigInt ID required for the contract call
+    return match.id; 
 }
