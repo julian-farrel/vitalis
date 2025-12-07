@@ -8,7 +8,8 @@ import { bookAppointmentOnChain } from "@/lib/web3"
 import { useUser } from "@/context/user-context"
 import { 
   ShieldCheck, MapPin, Stethoscope, Calendar, Clock, 
-  Building2, User, Loader2, History, ExternalLink, CheckCircle2
+  Building2, User, Loader2, History, ExternalLink, CheckCircle2,
+  ArrowLeft
 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -286,7 +287,14 @@ export default function DataConsentPage() {
               <DialogHeader>
                 <div className="flex items-center gap-2">
                    {bookingStep !== "details" && (
-                     <Button variant="ghost" size="sm" onClick={() => setBookingStep("details")} className="h-6 px-2">Back</Button>
+                     <Button 
+                       variant="ghost" 
+                       size="icon" 
+                       onClick={() => setBookingStep("details")} 
+                       className="h-6 w-6 rounded-full"
+                     >
+                       <ArrowLeft className="h-4 w-4" />
+                     </Button>
                    )}
                    <DialogTitle>{selectedHospital?.name}</DialogTitle>
                 </div>

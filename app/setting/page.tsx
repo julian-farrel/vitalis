@@ -27,7 +27,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { FamilyManager } from "@/components/family-manager" // [NEW] Import
+import { FamilyManager } from "@/components/family-manager"
 
 export default function SettingsPage() {
   const { logout } = usePrivy()
