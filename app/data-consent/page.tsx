@@ -4,22 +4,33 @@ import { useState, useEffect } from "react"
 import { usePrivy, useWallets } from "@privy-io/react-auth"
 import { VitalisSidebar } from "@/components/vitalis-sidebar"
 import { supabase } from "@/lib/supabase"
-import { bookAppointmentOnChain } from "@/lib/web3"
+import { bookAppointmentOnChain, cancelAppointmentOnChain, revokeAccessOnChain } from "@/lib/web3"
 import { useUser } from "@/context/user-context"
 import { 
   ShieldCheck, MapPin, Stethoscope, Calendar, Clock, 
   Building2, User, Loader2, History, ExternalLink, CheckCircle2,
-  ArrowLeft
+  ArrowLeft, XCircle, Ban
 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import Image from "next/image"
 
 export default function DataConsentPage() {
@@ -41,32 +52,33 @@ export default function DataConsentPage() {
   const [selectedTime, setSelectedTime] = useState("")
   const [isProcessing, setIsProcessing] = useState(false)
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const { data: hospitalData } = await supabase.from('hospitals').select('*')
-      if (hospitalData) setHospitals(hospitalData)
+  const fetchData = async () => {
+    const { data: hospitalData } = await supabase.from('hospitals').select('*')
+    if (hospitalData) setHospitals(hospitalData)
 
-      if (userData.didWalletAddress) {
-        const { data: appData } = await supabase
-          .from('appointments')
-          .select('*, hospitals(*)')
-          .eq('patient_wallet', userData.didWalletAddress)
+    if (userData.didWalletAddress) {
+      const { data: appData } = await supabase
+        .from('appointments')
+        .select('*, hospitals(*), doctors(*)')
+        .eq('patient_wallet', userData.didWalletAddress)
+        .order('created_at', { ascending: false })
+      
+      if (appData) {
+        setBookingHistory(appData)
+
+        const activeApps = appData.filter(a => a.status === 'Confirmed')
+        const uniqueHospitalIds = Array.from(new Set(activeApps.map(a => a.hospital_id)))
         
-        if (appData) {
-          const uniqueHospitals = Array.from(new Set(appData.map(a => a.hospital_id)))
-            .map(id => appData.find(a => a.hospital_id === id)?.hospitals)
-          setActivePermissions(uniqueHospitals)
-        }
-
-        const { data: historyData } = await supabase
-          .from('appointments')
-          .select('*, hospitals(name, logo_url), doctors(name, specialty)')
-          .eq('patient_wallet', userData.didWalletAddress)
-          .order('created_at', { ascending: false }) 
-
-        if (historyData) setBookingHistory(historyData)
+        const activePerms = uniqueHospitalIds.map(id => {
+           return appData.find(a => a.hospital_id === id)?.hospitals
+        }).filter(Boolean)
+        
+        setActivePermissions(activePerms)
       }
     }
+  }
+
+  useEffect(() => {
     fetchData()
   }, [userData.didWalletAddress])
 
@@ -99,7 +111,7 @@ export default function DataConsentPage() {
         provider
       )
 
-      const { data: newAppointment, error } = await supabase.from('appointments').insert({
+      const { error } = await supabase.from('appointments').insert({
         patient_wallet: userData.didWalletAddress,
         doctor_id: selectedDoctor.id,
         hospital_id: selectedHospital.id,
@@ -107,23 +119,71 @@ export default function DataConsentPage() {
         appointment_time: selectedTime,
         status: "Confirmed",
         tx_hash: txHash
-      }).select('*, hospitals(name, logo_url), doctors(name, specialty)').single()
+      })
 
       if (error) throw error
 
       toast({ title: "Success", description: "Appointment confirmed on blockchain!" })
       setIsDetailsOpen(false)
-      
-      if (!activePermissions.find(p => p.id === selectedHospital.id)) {
-        setActivePermissions(prev => [...prev, selectedHospital])
-      }
-      if (newAppointment) {
-        setBookingHistory(prev => [newAppointment, ...prev])
-      }
+      fetchData()
 
     } catch (error: any) {
       console.error(error)
       toast({ title: "Error", description: error.message, variant: "destructive" })
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  const handleCancelAppointment = async (appointment: any) => {
+    setIsProcessing(true)
+    try {
+      const activeWallet = wallets.find((w) => w.address === user?.wallet?.address);
+      if (!activeWallet) throw new Error("Wallet not found");
+      const provider = await activeWallet.getEthereumProvider();
+
+      await cancelAppointmentOnChain(appointment.id, provider)
+
+      const { error } = await supabase
+        .from('appointments')
+        .update({ status: 'Cancelled' })
+        .eq('id', appointment.id)
+
+      if (error) throw error
+
+      toast({ title: "Cancelled", description: "Appointment cancelled successfully." })
+      fetchData()
+    } catch (error: any) {
+      console.error(error)
+      toast({ title: "Error", description: "Failed to cancel on-chain.", variant: "destructive" })
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  const handleRevokeAccess = async (hospitalId: number) => {
+    setIsProcessing(true)
+    try {
+      const activeWallet = wallets.find((w) => w.address === user?.wallet?.address);
+      if (!activeWallet) throw new Error("Wallet not found");
+      const provider = await activeWallet.getEthereumProvider();
+
+      await revokeAccessOnChain(hospitalId, provider)
+
+      const { error } = await supabase
+        .from('appointments')
+        .update({ status: 'Revoked' })
+        .eq('hospital_id', hospitalId)
+        .eq('status', 'Confirmed')
+        .eq('patient_wallet', userData.didWalletAddress)
+
+      if (error) throw error
+
+      toast({ title: "Access Revoked", description: "All active permissions for this provider have been removed." })
+      fetchData()
+    } catch (error: any) {
+      console.error(error)
+      toast({ title: "Error", description: "Failed to revoke access on-chain.", variant: "destructive" })
     } finally {
       setIsProcessing(false)
     }
@@ -150,31 +210,56 @@ export default function DataConsentPage() {
              <h2 className="text-lg font-semibold">Active Permissions</h2>
              {activePermissions.length === 0 ? (
                <div className="p-6 border border-dashed rounded-xl text-center text-muted-foreground bg-muted/20">
-                 No healthcare providers currently have access to your data. Book an appointment to grant access.
+                 No healthcare providers currently have authorized access.
                </div>
              ) : (
                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                  {activePermissions.map((hospital: any) => (
                    <div 
                     key={hospital?.id} 
-                    className="relative overflow-hidden flex items-center gap-4 p-4 rounded-xl border border-emerald-200/60 bg-gradient-to-br from-emerald-50/40 via-white to-emerald-50/20 shadow-sm transition-all duration-300 hover:shadow-md hover:border-emerald-300/80 group"
+                    className="relative overflow-hidden flex flex-col gap-4 p-4 rounded-xl border border-emerald-200/60 bg-gradient-to-br from-emerald-50/40 via-white to-emerald-50/20 shadow-sm"
                    >
-                      <div className="absolute top-0 right-0 p-3 opacity-50 group-hover:opacity-100 transition-opacity">
-                        <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
-                      </div>
-
-                      <Avatar className="h-12 w-12 border-2 border-white shadow-sm">
-                        <AvatarImage src={hospital?.logo_url || "/placeholder-logo.png"} />
-                        <AvatarFallback>HP</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-semibold text-foreground">{hospital?.name}</p>
-                        <div className="flex items-center gap-1.5 mt-1">
-                          <Badge variant="secondary" className="bg-white/80 text-emerald-700 hover:bg-white border-emerald-100 backdrop-blur-sm shadow-sm">
-                            <CheckCircle2 className="w-3 h-3 mr-1" />
-                            Authorized
-                          </Badge>
+                      <div className="flex items-center gap-4">
+                        <Avatar className="h-12 w-12 border-2 border-white shadow-sm">
+                          <AvatarImage src={hospital?.logo_url || "/placeholder-logo.png"} />
+                          <AvatarFallback>HP</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-semibold text-foreground">{hospital?.name}</p>
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <Badge variant="secondary" className="bg-white/80 text-emerald-700 border-emerald-100">
+                              <CheckCircle2 className="w-3 h-3 mr-1" />
+                              Authorized
+                            </Badge>
+                          </div>
                         </div>
+                      </div>
+                      
+                      <div className="flex gap-2 mt-2">
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button size="sm" variant="destructive" className="w-full bg-red-100 text-red-700 hover:bg-red-200 border-red-200 border shadow-none">
+                              <Ban className="w-3 h-3 mr-2" /> Revoke Access
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Revoke Access?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will cancel all upcoming appointments with <strong>{hospital?.name}</strong> and revoke their permission to view your on-chain records. This action is recorded on the blockchain.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={() => handleRevokeAccess(hospital.id)}
+                                className="bg-destructive hover:bg-destructive/90"
+                              >
+                                {isProcessing ? "Revoking..." : "Yes, Revoke"}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                    </div>
                  ))}
@@ -219,12 +304,11 @@ export default function DataConsentPage() {
             </div>
           </div>
 
-          {/* Booking History Section */}
           <div className="space-y-4 pt-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold flex items-center gap-2">
                 <History className="h-5 w-5 text-muted-foreground" />
-                Booking History
+                History
               </h2>
             </div>
             
@@ -239,14 +323,14 @@ export default function DataConsentPage() {
                   {bookingHistory.map((booking) => (
                     <div key={booking.id} className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-muted/30 transition-colors">
                       <div className="flex items-start gap-4">
-                        <div className="flex flex-col items-center justify-center h-14 w-14 bg-primary/5 text-primary rounded-xl border border-primary/10">
+                        <div className={`flex flex-col items-center justify-center h-14 w-14 rounded-xl border ${booking.status === 'Cancelled' || booking.status === 'Revoked' ? 'bg-muted text-muted-foreground border-border' : 'bg-primary/5 text-primary border-primary/10'}`}>
                           <span className="text-xl font-bold leading-none">{new Date(booking.appointment_date).getDate()}</span>
                           <span className="text-[10px] font-bold uppercase tracking-wider">{new Date(booking.appointment_date).toLocaleDateString('en-US', { month: 'short' })}</span>
                         </div>
                         
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <h4 className="font-semibold text-sm">{booking.hospitals?.name}</h4>
+                            <h4 className={`font-semibold text-sm ${booking.status === 'Cancelled' || booking.status === 'Revoked' ? 'text-muted-foreground line-through' : ''}`}>{booking.hospitals?.name}</h4>
                             <Badge variant="outline" className="text-[10px] h-5 px-1.5 font-normal text-muted-foreground">
                               {booking.appointment_time.slice(0, 5)}
                             </Badge>
@@ -271,9 +355,29 @@ export default function DataConsentPage() {
                             <ExternalLink className="h-3 w-3" />
                           </a>
                         )}
-                        <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-0 shadow-none">
-                          {booking.status}
-                        </Badge>
+                        
+                        <div className="flex items-center gap-2">
+                          <Badge className={`
+                            shadow-none border-0 
+                            ${booking.status === 'Confirmed' ? 'bg-emerald-100 text-emerald-700' : 
+                              booking.status === 'Cancelled' ? 'bg-muted text-muted-foreground' : 
+                              booking.status === 'Revoked' ? 'bg-red-100 text-red-700' : 'bg-secondary'}
+                          `}>
+                            {booking.status}
+                          </Badge>
+
+                          {booking.status === 'Confirmed' && (
+                             <Button 
+                               variant="ghost" 
+                               size="sm" 
+                               className="h-6 px-2 text-xs text-muted-foreground hover:text-destructive"
+                               onClick={() => handleCancelAppointment(booking)}
+                               disabled={isProcessing}
+                             >
+                               <XCircle className="w-3 h-3 mr-1" /> Cancel
+                             </Button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -393,7 +497,7 @@ export default function DataConsentPage() {
                      Confirming will record this consent on the blockchain.
                    </div>
                    <Button className="w-full" onClick={handleBookAppointment} disabled={isProcessing}>
-                     {isProcessing ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Confirming...</> : "Confirm & Pay"}
+                     {isProcessing ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Confirming...</> : "Confirm"}
                    </Button>
                 </div>
               )}

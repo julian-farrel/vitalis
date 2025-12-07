@@ -2,7 +2,7 @@ import { createWalletClient, custom, publicActions } from 'viem'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { sepolia } from 'viem/chains'
 
-export const VITALIS_CONTRACT_ADDRESS = "0x9C61233fF5168d6CFf66e5Db1797bE9E8C88AD8c" 
+export const VITALIS_CONTRACT_ADDRESS = "0x616E65710C077f06f0B013CF20f8Bf8dA652D368" 
 
 export const VITALIS_ABI = [
   {
@@ -51,6 +51,20 @@ export const VITALIS_ABI = [
       { "internalType": "string", "name": "_time", "type": "string" }
     ],
     "name": "bookAppointment",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "uint256", "name": "_appointmentId", "type": "uint256" }],
+    "name": "cancelAppointment",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "uint256", "name": "_hospitalId", "type": "uint256" }],
+    "name": "revokeAccess",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -179,6 +193,48 @@ export const bookAppointmentOnChain = async (
     abi: VITALIS_ABI,
     functionName: 'bookAppointment',
     args: [BigInt(hospitalId), BigInt(doctorId), date, time]
+  })
+
+  return hash;
+}
+
+export const cancelAppointmentOnChain = async (appointmentId: number, provider: any) => {
+  if (!provider) throw new Error("No wallet provider found");
+
+  const client = createWalletClient({
+    chain: sepolia,
+    transport: custom(provider)
+  }).extend(publicActions)
+
+  const [account] = await client.requestAddresses()
+
+  const hash = await client.writeContract({
+    account,
+    address: VITALIS_CONTRACT_ADDRESS as `0x${string}`,
+    abi: VITALIS_ABI,
+    functionName: 'cancelAppointment',
+    args: [BigInt(appointmentId)]
+  })
+
+  return hash;
+}
+
+export const revokeAccessOnChain = async (hospitalId: number, provider: any) => {
+  if (!provider) throw new Error("No wallet provider found");
+
+  const client = createWalletClient({
+    chain: sepolia,
+    transport: custom(provider)
+  }).extend(publicActions)
+
+  const [account] = await client.requestAddresses()
+
+  const hash = await client.writeContract({
+    account,
+    address: VITALIS_CONTRACT_ADDRESS as `0x${string}`,
+    abi: VITALIS_ABI,
+    functionName: 'revokeAccess',
+    args: [BigInt(hospitalId)]
   })
 
   return hash;
