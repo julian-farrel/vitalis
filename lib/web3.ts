@@ -2,7 +2,7 @@ import { createWalletClient, custom, publicActions } from 'viem'
 import { generatePrivateKey, privateKeyToAccount, generateMnemonic, mnemonicToAccount, english } from 'viem/accounts'
 import { sepolia } from 'viem/chains'
 
-export const VITALIS_CONTRACT_ADDRESS = "0x9A9669aD8C22A5F0DA9C1F5b25B04Ffbbef8C0b4" 
+export const VITALIS_CONTRACT_ADDRESS = "0xe2a90cCc248942e0A76f86cf096d77c7eB816f0B" 
 
 export const VITALIS_ABI = [
   {
