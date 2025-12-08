@@ -46,7 +46,7 @@
 └── public/               # Static assets
 ```
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -100,12 +100,12 @@ Vitalis interacts with a custom Solidity smart contract deployed on the **Sepoli
 
 *See `lib/web3.ts` for the full ABI and interaction logic.*
 
-## 🔒 Security & Privacy
+## Security & Privacy
 
 * **Zero-Knowledge Principles:** While Vitalis verifies identity on-chain, sensitive personal data (names, specific conditions) is stored off-chain or hashed to preserve privacy.
 * **Integrity Verification:** Medical records uploaded are hashed on the client side using SHA-256. This hash is stored on the blockchain. Any alteration to the off-chain file will result in a mismatch with the on-chain proof, alerting the user to tampering.
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
@@ -115,6 +115,6 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 4.  Push to the branch (`git push origin feature/AmazingFeature`)
 5.  Open a Pull Request
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License.
