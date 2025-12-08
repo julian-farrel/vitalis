@@ -1,14 +1,14 @@
-# Vitalis Medical 🏥
+# Vitalis Medical
 
 **Vitalis** is a decentralized medical identity and health record management platform built on the Ethereum blockchain. It empowers patients with full ownership of their data, allowing for secure storage, selective sharing with healthcare providers, and immutable on-chain verification of medical history.
 
-## ✨ New Feature: Family Guardian
+## New Feature: Family Guardian
 Vitalis now supports **Family Guardian** capabilities, allowing users to manage decentralized identities for their dependents (children or elderly family members). 
 * **Register Dependents:** Create secure, unique DIDs for family members directly from your settings.
 * **On-Chain Relationships:** Guardian relationships are verified and stored on the blockchain via the `registerDependent` smart contract function.
 * **Unified Management:** View and manage the medical profiles of your loved ones from a single guardian account.
 
-## 🌟 Core Features
+## Core Features
 
 * **Decentralized Identity (DID):** Users generate a unique, cryptographically secure identity linked to their wallet address upon onboarding.
 * **Hybrid Data Storage:**
@@ -18,7 +18,7 @@ Vitalis now supports **Family Guardian** capabilities, allowing users to manage 
 * **Blockchain Appointments:** Book, confirm, and cancel doctor appointments directly via smart contract transactions.
 * **Wallet Integration:** Seamless login and transaction signing using **Privy** and **Viem**.
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 * **Framework:** [Next.js 15](https://nextjs.org/) (App Router)
 * **Language:** TypeScript
@@ -28,7 +28,7 @@ Vitalis now supports **Family Guardian** capabilities, allowing users to manage 
 * **Backend & Storage:** [Supabase](https://supabase.com/)
 * **Network:** Ethereum Sepolia Testnet
 
-## 📂 Project Structure
+## Project Structure
 
 ```bash
 ├── app/                  # Next.js App Router pages
