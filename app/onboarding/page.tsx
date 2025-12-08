@@ -19,7 +19,9 @@ import {
   Loader2, 
   ShieldCheck, 
   Activity,
-  ArrowLeft
+  ArrowLeft,
+  Copy,
+  AlertCircle
 } from "lucide-react"
 import {
   AlertDialog,
@@ -31,7 +33,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { supabase } from "@/lib/supabase"
-import { registerDIDOnChain, VITALIS_CONTRACT_ADDRESS, VITALIS_ABI } from "@/lib/web3"
+import { registerDIDOnChain, VITALIS_CONTRACT_ADDRESS, VITALIS_ABI, generateMnemonicAndAddress } from "@/lib/web3" // <-- UPDATED IMPORT
 import { createPublicClient, http, getAddress } from 'viem'
 import { sepolia } from 'viem/chains'
 import Image from "next/image"
@@ -47,6 +49,7 @@ export default function OnboardingPage() {
   
   const [showSuccessDialog, setShowSuccessDialog] = useState(false)
   const [createdDID, setCreatedDID] = useState("")
+  const [createdMnemonic, setCreatedMnemonic] = useState<string>("")
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -81,18 +84,10 @@ export default function OnboardingPage() {
     setStep(step + 1)
   }
 
-  const generateDID = async () => {
-    const dataString = `${formData.firstName}${formData.lastName}${formData.dob}${formData.email}${formData.address}`.toLowerCase().trim()
-    
-    const encoder = new TextEncoder()
-    const dataBuffer = encoder.encode(dataString)
-    const hashBuffer = await crypto.subtle.digest("SHA-256", dataBuffer)
-    const hashArray = Array.from(new Uint8Array(hashBuffer))
-    const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("")
-    
-    const rawAddress = `0x${hashHex.substring(0, 40)}`
-    
-    return getAddress(rawAddress)
+  const generateWallet = () => { 
+    const { mnemonic, didAddress } = generateMnemonicAndAddress()
+    setCreatedMnemonic(mnemonic)
+    return didAddress
   }
 
   const handleSubmit = async () => {
@@ -118,7 +113,7 @@ export default function OnboardingPage() {
     setStatusText("Generating DID...")
 
     try {
-      const didAddress = await generateDID()
+      const didAddress = generateWallet()
       console.log("Generated DID:", didAddress)
 
       const publicClient = createPublicClient({ 
@@ -142,7 +137,7 @@ export default function OnboardingPage() {
           isRegistered = true
           
           if(existingDID.toLowerCase() !== didAddress.toLowerCase()) {
-             console.warn("Registered DID differs from generated DID. Using existing registration.")
+             console.warn("User already registered. Using existing registration for demonstration purposes.")
           }
         }
       } catch (err) {
@@ -336,7 +331,7 @@ export default function OnboardingPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="conditions" className="text-xs font-semibold uppercase text-muted-foreground tracking-wide">Medical Conditions</Label>
-                  <Textarea id="conditions" name="conditions" placeholder="e.g. Asthma, Type 2 Diabetes..." className="bg-background/50 min-h-[80px]" value={formData.conditions} onChange={handleInputChange} />
+                  <Textarea id="conditions" name="conditions" placeholder="e.g. Asthma, Diabetes..." className="bg-background/50 min-h-[80px]" value={formData.conditions} onChange={handleInputChange} />
                 </div>
               </div>
             )}
@@ -382,13 +377,37 @@ export default function OnboardingPage() {
             <div className="mx-auto w-16 h-16 bg-white rounded-full flex items-center justify-center mb-6 shadow-xl border border-emerald-100 animate-in zoom-in duration-300">
               <CheckCircle2 className="h-8 w-8 text-emerald-500" />
             </div>
-            <AlertDialogTitle className="text-2xl font-bold">Identity Verified</AlertDialogTitle>
+            <AlertDialogTitle className="text-2xl font-bold">Identity Verified & Secured</AlertDialogTitle>
             <AlertDialogDescription className="text-muted-foreground mt-2">
-              Your decentralized identity (DID) has been successfully generated and minted on the blockchain.
+              Your decentralized identity (DID) has been successfully created.
             </AlertDialogDescription>
           </AlertDialogHeader>
 
-          <div className="px-6 py-4">
+          <div className="px-6 py-4 space-y-4"> 
+             <div className="bg-red-50 border border-red-200 p-3 rounded-lg text-sm text-red-800 font-medium flex items-start gap-2">
+                 <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                 <p><strong>CRITICAL:</strong> Write down your **12-word recovery phrase** and store it safely. It is the **only way to recover** your wallet.</p>
+             </div>
+             
+             <div className="bg-muted/50 rounded-xl border border-border p-4 flex flex-col items-center gap-4">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">12-Word Recovery Phrase</span>
+                <code className="font-mono text-base font-semibold text-foreground w-full text-center break-words leading-relaxed">
+                  {createdMnemonic.split(' ').map((word, index) => (
+                    <span key={index} className="inline-block p-1">
+                      <span className="text-muted-foreground text-xs">{index + 1}.</span> {word}
+                    </span>
+                  ))}
+                </code>
+                <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="gap-2"
+                    onClick={() => navigator.clipboard.writeText(createdMnemonic).then(() => alert("Mnemonic phrase copied to clipboard!"))}
+                >
+                    <Copy className="h-4 w-4" /> Copy Phrase
+                </Button>
+             </div>
+
              <div className="bg-muted/50 rounded-xl border border-border p-4 flex flex-col items-center gap-2">
                 <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Public DID Address</span>
                 <code className="font-mono text-sm bg-background px-3 py-1.5 rounded-lg border border-border/50 text-foreground w-full text-center break-all">

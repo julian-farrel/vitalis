@@ -1,5 +1,5 @@
 import { createWalletClient, custom, publicActions } from 'viem'
-import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
+import { generatePrivateKey, privateKeyToAccount, generateMnemonic, mnemonicToAccount, english } from 'viem/accounts'
 import { sepolia } from 'viem/chains'
 
 export const VITALIS_CONTRACT_ADDRESS = "0x9A9669aD8C22A5F0DA9C1F5b25B04Ffbbef8C0b4" 
@@ -98,6 +98,16 @@ export const generateHealthWallet = () => {
   const privateKey = generatePrivateKey()
   const account = privateKeyToAccount(privateKey)
   return { address: account.address, privateKey: privateKey }
+}
+
+export const generateMnemonicAndAddress = () => {
+  const mnemonic = generateMnemonic(english)
+  
+  const account = mnemonicToAccount(mnemonic, {
+    path: "m/44'/60'/0'/0/0"
+  })
+
+  return { mnemonic, didAddress: account.address }
 }
 
 export const registerDIDOnChain = async (didAddress: string, provider: any) => {
