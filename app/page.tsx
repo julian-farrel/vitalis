@@ -152,7 +152,7 @@ export default function LandingPage() {
                  asChild
                >
                 <Link 
-                  href="https://drive.google.com/" 
+                  href="https://drive.google.com/file/d/1na9fYWU4v98F9zBzy7M55lASUUJBXQZL/view?usp=sharing" 
                   target="_blank"
                   rel="noopener noreferrer"
                 >

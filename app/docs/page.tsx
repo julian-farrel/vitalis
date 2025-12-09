@@ -47,8 +47,9 @@ export default function DocsPage() {
                </div>
                
                <Link 
-                 href="/vitalis-whitepaper.pdf" 
+                 href="https://drive.google.com/file/d/1na9fYWU4v98F9zBzy7M55lASUUJBXQZL/view?usp=sharing" 
                  target="_blank" 
+                 rel="noopener noreferrer"
                  className="flex items-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 hover:bg-primary/90 transition-transform hover:scale-105"
                >
                  <Download className="h-5 w-5" />
@@ -61,37 +62,37 @@ export default function DocsPage() {
           <div className="rounded-xl border bg-card p-8 shadow-sm">
              <h3 className="mb-6 font-semibold text-lg">Frequently Asked Questions</h3>
              <div className="space-y-6">
-                
-                <div>
-                   <h5 className="font-medium text-sm">Is my actual medical data stored on the blockchain?</h5>
-                   <p className="mt-1 text-sm text-muted-foreground">
-                      No. Only the <strong>cryptographic hash</strong> (a unique digital fingerprint) of your data is stored on-chain for verification. The actual files are stored in decentralized encrypted storage (IPFS/Filecoin) that only you hold the keys to access.
-                   </p>
-                </div>
-                <div className="h-px bg-border" />
-                
-                <div>
-                   <h5 className="font-medium text-sm">What happens in an emergency if I am unconscious?</h5>
-                   <p className="mt-1 text-sm text-muted-foreground">
-                      Vitalis includes a &quot;Break-Glass&quot; protocol. Verified Emergency Responders can request temporary access. This triggers a smart contract event that logs their identity and the time of access immutably, ensuring full accountability for the intrusion.
-                   </p>
-                </div>
-                <div className="h-px bg-border" />
+               
+               <div>
+                  <h5 className="font-medium text-sm">Is my actual medical data stored on the blockchain?</h5>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                     No. Only the <strong>cryptographic hash</strong> (a unique digital fingerprint) of your data is stored on-chain for verification. The actual files are stored in decentralized encrypted storage (IPFS/Filecoin) that only you hold the keys to access.
+                  </p>
+               </div>
+               <div className="h-px bg-border" />
+               
+               <div>
+                  <h5 className="font-medium text-sm">What happens in an emergency if I am unconscious?</h5>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                     Vitalis includes a &quot;Break-Glass&quot; protocol. Verified Emergency Responders can request temporary access. This triggers a smart contract event that logs their identity and the time of access immutably, ensuring full accountability for the intrusion.
+                  </p>
+               </div>
+               <div className="h-px bg-border" />
 
-                <div>
-                   <h5 className="font-medium text-sm">Do I have to pay gas fees to view my own records?</h5>
-                   <p className="mt-1 text-sm text-muted-foreground">
-                      No. Viewing records is a &quot;read-only&quot; operation and is free. However, granting access to a new doctor or uploading a new record requires a small gas fee to write the transaction to the Ethereum network.
-                   </p>
-                </div>
-                <div className="h-px bg-border" />
+               <div>
+                  <h5 className="font-medium text-sm">Do I have to pay gas fees to view my own records?</h5>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                     No. Viewing records is a &quot;read-only&quot; operation and is free. However, granting access to a new doctor or uploading a new record requires a small gas fee to write the transaction to the Ethereum network.
+                  </p>
+               </div>
+               <div className="h-px bg-border" />
 
-                <div>
-                   <h5 className="font-medium text-sm">What happens if I lose my wallet key?</h5>
-                   <p className="mt-1 text-sm text-muted-foreground">
-                      Vitalis supports <strong>Social Recovery</strong>. During setup, you can designate trusted guardians (family, lawyer, or a hardware device). If you lose access, a majority of these guardians can sign a transaction to restore your identity to a new wallet.
-                   </p>
-                </div>
+               <div>
+                  <h5 className="font-medium text-sm">What happens if I lose my wallet key?</h5>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                     Vitalis supports <strong>Social Recovery</strong>. During setup, you can designate trusted guardians (family, lawyer, or a hardware device). If you lose access, a majority of these guardians can sign a transaction to restore your identity to a new wallet.
+                  </p>
+               </div>
              </div>
           </div>
 
